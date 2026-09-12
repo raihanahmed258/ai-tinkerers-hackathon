@@ -42,7 +42,12 @@ Limits: the live inbox is empty, so Inbox drafts end `BLOCKED` live, and the bri
 
 ## 4. Stack
 
-Claude, model `claude-sonnet-4-5`, via the Anthropic API, for watcher and Desk extraction. Ambiguous AI workspace and its MCP server, Streamable HTTP, as the hands for Chat, CRM, Mail, Tasks and Calendar. Python round runner with `MockClient` offline and `McpClient` live. A morning schedule on Ambiguous Automations or Trigger.dev is designed, not running; today a round is started by hand.
+Claude Sonnet 5, model `claude-sonnet-5`, via the Anthropic API, for watcher
+and Desk extraction. Ambiguous AI workspace and its MCP server, Streamable
+HTTP, as the hands for Chat, CRM, Mail, Tasks and Calendar. Python round runner
+with `MockClient` offline and `McpClient` live. A morning schedule on Ambiguous
+Automations or Trigger.dev is designed, not running; today a round is started
+by hand.
 
 ## 5. Demo world
 

@@ -83,7 +83,8 @@ Tool-by-tool mapping from this repo's `WorkspaceClient` interface to the real Am
 
 ### The model key is not optional
 
-Set `ANTHROPIC_API_KEY` (in `.env` or the environment) before you trust a run. The model is `claude-sonnet-4-5`, set in `agents.yaml › defaults.model`.
+Set `ANTHROPIC_API_KEY` (in `.env` or the environment) before you trust a run.
+The model is `claude-sonnet-5`, set in `agents.yaml › defaults.model`.
 
 There is a heuristic fallback that runs when the key is missing, a model call throws, or `--no-model` is set. **It is a smoke test, not a model-validated result.** Use `--no-model` for cleanup and local checks so an existing `.env` cannot spend credits accidentally. If you are recording a model-backed run, confirm the key is loaded first.
 

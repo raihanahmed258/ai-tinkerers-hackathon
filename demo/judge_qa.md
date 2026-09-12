@@ -48,7 +48,7 @@ Four layers refuse the dangerous writes: `_normalize_action_type` at `floor/roun
 |---|---|
 | Why at most 3 items? | Attention is the scarce resource, and `post_brief` at `floor/round.py` line 1434 slices to three in code. |
 | Is the router an LLM? | No. `floor/router.py` `slice_for` gives Ops deals, Inbox threads, Follow-up tasks, events and two channels, and raises if a lane leaks a key. |
-| Which model? | `claude-sonnet-4-5` via the Anthropic API, set in `agents.yaml`. Without the key the code uses heuristic rules and the brief is wrong. |
+| Which model? | Claude Sonnet 5 (`claude-sonnet-5`) via the Anthropic API, set in `agents.yaml`. Without the key the code uses heuristic rules and the brief is wrong. |
 | What does a round cost? | The historical safety-demo mock produced roughly 113 writes plus four model-call slots. Normal mode omits seven synthetic posts, but measure one deliberate live run before scheduling. |
 | Who owns the tasks? | All six go to dana, due in two days. Owner routing is weak and it is on the floor as DONE receipts. |
 | What about the E-4 miss? | E-4 is a future meeting whose only "attendee left" evidence is mail M-4 in Inbox's lane, so Follow-up cannot know in pass 1. The golden answer says so in the same line. It is a Desk-merge item, and the heuristic Follow-up never emits it. |

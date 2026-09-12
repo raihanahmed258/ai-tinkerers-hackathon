@@ -335,7 +335,8 @@ Code version:
 Model path:
 
 - `ANTHROPIC_API_KEY` was loaded in that process and the log contains no line containing `Falling back to heuristic` (the watchers print `Falling back to heuristic rules...`, the Desk prints `Falling back to heuristic merge...`) and no line containing `call failed` (the watchers print `Warning: Anthropic API call failed for <agent>`, the Desk prints `Warning: Desk merge Anthropic call failed`). One such line means at least one watcher or the Desk ran on the heuristic and the run is AMBER at best. On this machine right now there is no `.env` and no key (H6), so nothing produced here today is GREEN.
-- The model named is `claude-sonnet-4-5` via the Anthropic API, as `agents.yaml` sets it.
+- The current model is Claude Sonnet 5 (`claude-sonnet-5`) via the Anthropic
+  API, as `agents.yaml` sets it.
 
 ### AMBER must be said when any of these is true
 

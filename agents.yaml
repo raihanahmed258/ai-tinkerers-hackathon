@@ -3,7 +3,7 @@
 # Working title for the project: "The Floor" (rename freely — just don't call it Grok Bot).
 
 defaults:
-  model: claude-sonnet-4-5  # Anthropic; ANTHROPIC_API_KEY in .env
+  model: claude-sonnet-5  # Anthropic; ANTHROPIC_API_KEY in .env
   max_findings_per_run: 8   # caps chatter and protects the 1,000-action monthly budget
   never:
     - send any email or message to a customer (drafts only)

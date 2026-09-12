@@ -120,15 +120,15 @@ Evidence notation: "Ambiguous, #channel, label" means a post you can scroll to i
 
 (d) Evidence. none live, source only: git log shows 54ef2e6 after the artefact; the mock output from python -m floor.round today.
 
-### 12. Run it live with only the default token and it crashes.
+### 12. Run it live with only the default token.
 
-(a) Steelman. "as_agent('verifier') raises PermissionError when neither AMBIGUOUS_TOKEN_VERIFIER nor AMBIGUOUS_TOKEN_DESK is set, and the --live entry point only reads the default token. So the documented command posts the findings and dies at the first VERIFIER post. MCP_MAPPING.md line 40 says it falls back. The code refuses to."
+(a) Steelman. "The Verifier refuses to use a human/default identity. What happens if only the default workspace token is configured?"
 
-(b) Answer. Yes. I confirmed it offline. The crash is deliberate fail-closed: a verdict must never post as a human's token, so with no Desk token the round stops before any assignment executes. The doc line claiming a default fallback is wrong and the code is right. The consequence is a pre-roll blocker, not a design flaw: AMBIGUOUS_TOKEN_DESK must be exported before the live run, and "VERIFIER posts as Desk" is only true when it is. The findings already on the floor at the point of the crash are still valid.
+(b) Answer. The CLI fails preflight before any workspace post. A verdict must never post as a human's token, so `AMBIGUOUS_TOKEN_DESK` or a dedicated Verifier token is required. "VERIFIER posts as Desk" is only true when the Desk token is configured.
 
 (c) Trap. Do not say "it falls back to the default token"; that is the wrong doc line.
 
-(d) Evidence. none live, source only, floor/client.py:341 to :348 the PermissionError, floor/round.py:1570 the token read; MCP_MAPPING.md:40 is the wrong line.
+(d) Evidence. source only: `McpClient.as_agent` and the `--live` preflight in `floor/round.py`.
 
 ### 13. Your golden answer is hand-written, and it is also the Desk's prompt.
 
@@ -180,15 +180,15 @@ Evidence notation: "Ambiguous, #channel, label" means a post you can scroll to i
 
 (d) Evidence. none live, source only, floor/round.py:563 the key check, :581 the model id; the AMBER eval line from today's mock.
 
-### 18. The brief says "Ready: draft reply" for a draft that blocked.
+### 18. Can the brief claim planned work was completed?
 
-(a) Steelman. "post_brief prints Ready from the planned actions, not from what executed. Live, with an empty inbox, the brief will tell Priya a draft is ready when the floor shows BLOCKED. That is a lie to the human."
+(a) Steelman. "Does the human brief infer completion from the Desk's plan?"
 
-(b) Answer. Yes, that line is an overclaim. Ready is rendered from problem.actions before execution, and the brief does not read the DONE and BLOCKED receipts back. Live, a blocked draft will still print as ready. The fix is small: render Ready from the receipts. It is not merged. In the recording I will not read that line and I will not point at it. The receipts on the floor are the truth, and the floor is readable by the same humans.
+(b) Answer. No. The old `Ready:` line was removed because it rendered planned actions before execution. The brief now shows evidence; `DONE` and `BLOCKED` receipts on the floor are the execution truth.
 
-(c) Trap. Do not read the Ready line aloud.
+(c) Trap. Do not claim a draft or task completed unless there is a `DONE` receipt.
 
-(d) Evidence. none live, source only, floor/round.py:1472 to :1476.
+(d) Evidence. `post_brief` and the floor receipts in `execute_actions`.
 
 ### 19. "Reply in this thread and I'll record it." Nothing is listening.
 
@@ -270,7 +270,7 @@ Evidence notation: "Ambiguous, #channel, label" means a post you can scroll to i
 | 2 | 11. No validated run | Citing MOCK_ROUND_VALIDATE3.txt for a protocol it does not contain is a checkable lie in a committed file. |
 | 3 | 14. Pinned ranking | The brief is the product; if a judge greps _stabilize_brief before you mention it, the merge story dies with it. |
 | 4 | 13. Golden is the prompt | Turns the eval from a strength into a fraud if you called it independent. |
-| 5 | 12. Crash without Desk token | A live crash at the first VERIFIER post mid-recording is unrecoverable on the clock; a doc line contradicts the code. |
+| 5 | 12. Missing Desk token | Preflight blocks the round, so this must be configured before recording. |
 | 6 | 10. Empty inbox | The signature Pine & Salt merge needs mail; a judge who watches Inbox post nothing will ask why the demo is built on it. |
 | 7 | 5. Refusal theater | If the only safety scene is admitted to be staged without the four code layers underneath, safety reads as cosmetic. |
 | 8 | 8. Prompt injection | Untrusted mail and chat bodies go straight into the model; claiming any separation you do not have is the fastest credibility loss on a security question. |
@@ -285,7 +285,7 @@ Each overclaim is paired with the sentence to say instead.
 - Never say "the validated run shows the protocol". Say: "the only model-backed artefact predates the gate; the current code has a mock run and the recording is its first live run." (H1)
 - Never say "it falls back to the default token". Say: "without a Desk token the VERIFIER post fails closed and the round stops; AMBIGUOUS_TOKEN_DESK is a pre-roll blocker." (H2)
 - Never say "Inbox found the bounce live". Say: "the live inbox is empty by platform limitation; the mail evidence is a [SEED MAIL] post in #ops-team and drafts block with a clear reason." (H3)
-- Never say "the draft is ready" or read the Ready line. Say: "the DONE and BLOCKED receipts on the floor are what executed; the Ready line is planned work and I am not pointing at it." (H4)
+- Never say "the draft is ready" without a `DONE` receipt. The brief no longer infers completion from planned actions. (H4)
 - Never say "reply in the thread and it records it". Say: "the reply handler is implemented behind a flag and not demonstrated." (H5)
 - Never say "the model ranked the brief" or "the Desk chose Theo". Say: "findings and merge are derived; the priority order is a hand-written playbook prior applied in code, and eval_unpinned measures how much it carries." (H7)
 - Never read a brief aloud before confirming the key path. Say: "with no key the brief is wrong and the eval says AMBER; the key is pre-roll blocker number one." (H6)

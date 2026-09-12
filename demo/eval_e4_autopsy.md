@@ -191,7 +191,7 @@ E-4 is placed six days out with notes "Tentative." and no linked task. Six days 
 
 ## 4. Mock-only experiment matrix
 
-Run everything from the repo root, `/Users/raihanahmed/Desktop/the-floor`, with `.venv/bin/python`. Never pass `--live`. Experiments X1, X3, X4, X5 and X8 were executed today and their results are recorded as observed; X2, X6 and X7 are specified with predicted outcomes and marked as such. Scratch scripts belong in the session scratchpad, never in the repo.
+Run everything from the repo root with `.venv/bin/python`. Never pass `--live`. Experiments X1, X3, X4, X5 and X8 were executed today and their results are recorded as observed; X2, X6 and X7 are specified with predicted outcomes and marked as such. Scratch scripts belong in the session scratchpad, never in the repo.
 
 | Id | Question | Path | Status |
 |---|---|---|---|

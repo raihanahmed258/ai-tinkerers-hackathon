@@ -45,7 +45,7 @@ Implemented the five core TODO functions in `floor/round.py` to make The Floor a
 $ python3 -m floor.seed
 seeded: 20 deals, 12 threads, 9 tasks, 9 events, 26 chat messages across 4 channels
 
-$ python3 -m floor.round
+$ python3 -m floor.round --no-model
 # Pass 1: 22 FINDING cards posted by 3 watchers
 # Pass 2: 13 problems merged, actions executed, brief posted
 # Brief: 3 human items (Marigold, Sunset Taco, Harbor Fish)
@@ -76,7 +76,7 @@ $ python3 -m floor.round
 ### Mock mode (offline, no credentials needed)
 ```bash
 python3 -m floor.seed    # Verify seed loads
-python3 -m floor.round   # Run full round with heuristic fallback
+python3 -m floor.round --no-model   # Guaranteed no-cost heuristic smoke test
 ```
 
 ### With Anthropic Claude

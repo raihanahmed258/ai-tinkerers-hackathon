@@ -3,10 +3,13 @@
 Run evaluations outside the live Ambiguous recording. They are for validating a captured round, not for the two-minute shot list.
 
 ```bash
-python -m floor.round | tee run.txt
+python -m floor.round --no-model | tee run.txt
 python -m floor.eval_expected run.txt
-python -m floor.eval_unpinned --trace
+FLOOR_NO_MODEL=1 python -m floor.eval_unpinned --trace
 ```
+
+The no-model path is expected to score AMBER on brief ordering. These commands
+are free smoke tests for safety and control handling, not polished demo evidence.
 
 ## Read the result
 

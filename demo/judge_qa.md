@@ -34,7 +34,7 @@ The MCP exposes `list_inbox`, `create_draft_email` and `send_email`, and nothing
 
 **Headline:** Findings and merge are derived; the top three slots and their owners are a hand-written playbook prior.
 
-`_stabilize_brief` forces Ember Grill, Pine & Salt and Copper Kettle into ranks 1 to 3 with owners theo, dana and priya, and `_ensure_golden_problems` can synthesize them if the Desk drops them. `prompts/desk.md` also names the required order. `floor.eval_unpinned --trace` measures how much those stabilizers carry. The `Ready:` line is planned work, not an execution receipt. The brief only invites replies when `FLOOR_REPLY_LOOP` is enabled.
+`_stabilize_brief` forces Ember Grill, Pine & Salt and Copper Kettle into ranks 1 to 3 with owners theo, dana and priya, and `_ensure_golden_problems` can synthesize them if the Desk drops them. `prompts/desk.md` also names the required order. `floor.eval_unpinned --trace` measures how much those stabilizers carry. The brief only shows evidence and only invites replies when `FLOOR_REPLY_LOOP` is enabled; execution truth stays in the floor receipts.
 
 ### 5. What can it write, and what does the reply handler do?
 
@@ -61,7 +61,6 @@ Four layers refuse the dangerous writes: `_normalize_action_type` at `floor/roun
 - Do not say the current protocol has a validated model run. Say: "The validation artifact predates the protocol; the live recording is the first end-to-end run" (H1).
 - Do not say VERIFIER posts as Desk as a given. Say: "It posts as Desk when the Desk token is set; without it the round fails closed" (H2).
 - Do not say Inbox posted findings unless one is on screen, and do not show a seeded Mail draft as agent output (H3).
-- Do not read the `Ready:` line or point at it (H4).
 - Do not say the reply loop works. Say: "Implemented behind a flag, off by default, not demonstrated" (H5).
 - Do not say the brief order is the model's ranking. Say: "A playbook prior in `_stabilize_brief`; findings and merge are derived" (H7).
 - Do not present a historical write count as a live billing guarantee.

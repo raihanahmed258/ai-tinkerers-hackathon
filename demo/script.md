@@ -14,10 +14,10 @@ Work top to bottom. Items 1 and 2 are blockers. Do not start recording with eith
 
 ### 1. ANTHROPIC_API_KEY loaded
 
-There is no `.env` on this machine as of this writing. Create `/Users/raihanahmed/Desktop/the-floor/.env` with `ANTHROPIC_API_KEY=` and your key, then confirm it loads the same way `floor/round.py` loads it:
+Copy `.env.example` to `.env` in the repo root, add `ANTHROPIC_API_KEY`, then confirm it loads the same way `floor/round.py` does:
 
 ```bash
-cd /Users/raihanahmed/Desktop/the-floor && .venv/bin/python -c "import os,dotenv; dotenv.load_dotenv('.env'); print('key loaded:', bool(os.environ.get('ANTHROPIC_API_KEY')))"
+cd /path/to/the-floor && .venv/bin/python -c "import os,dotenv; dotenv.load_dotenv('.env'); print('key loaded:', bool(os.environ.get('ANTHROPIC_API_KEY')))"
 ```
 
 You want `key loaded: True`. Without the key the code silently falls back to heuristic rules and the brief is wrong: Ember Grill for @theo vanishes and item 3 renders as a bare `T-1` assigned to @dana. There is no error. The eval scores that run AMBER. Do not `cat .env` or echo the key while recording.
@@ -27,10 +27,10 @@ You want `key loaded: True`. Without the key the code silently falls back to heu
 Put `AMBIGUOUS_TOKEN_DESK=` and the Desk agent token in the same `.env`, or export it in the shell that runs the round. Confirm:
 
 ```bash
-cd /Users/raihanahmed/Desktop/the-floor && .venv/bin/python -c "import os,dotenv; dotenv.load_dotenv('.env'); print('desk token:', bool(os.environ.get('AMBIGUOUS_TOKEN_DESK')))"
+cd /path/to/the-floor && .venv/bin/python -c "import os,dotenv; dotenv.load_dotenv('.env'); print('desk token:', bool(os.environ.get('AMBIGUOUS_TOKEN_DESK')))"
 ```
 
-You want `desk token: True`. Without it, `python -m floor.round --live` posts the watcher findings and then raises `PermissionError` at the first VERIFIER post inside refusal theater. The round stops there, the floor is left half posted, and the recording dies. This is by design: `McpClient.as_agent("verifier")` in `floor/client.py` refuses to fall back to the default token. The `--live` entry point only reads `AMBIGUOUS_API_KEY` or `AMBIGUOUS_TOKEN`, so the Desk token must be set separately. "VERIFIER posts as Desk" is only true after this step.
+You want `desk token: True`. Without a Desk or dedicated Verifier token, `python -m floor.round --live` now fails preflight before posting anything. This preserves the fail-closed identity boundary without leaving a half-written round. "VERIFIER posts as Desk" is only true after this step.
 
 Simulated offline against a live-shaped client: without the token the last thing on the floor is one `ASSIGN · Inbox → send email to customer`, then nothing. The system announces an unsafe request and goes silent. There is no flag to run pass 2 alone, so the recovery is to set the token and re-run the whole round, which posts a second `—— Round … · pass 1 ——` block above the good one. Scroll to the second header for the take.
 
@@ -73,7 +73,6 @@ macOS Do Not Disturb on. Quit Mail, Slack and Messages. Phone silent and face do
 
 ## Do not show
 
-- The `Ready:` line in the brief. It prints planned actions, not executed ones. A draft that BLOCKed still reads `Ready: draft reply`. Do not read it aloud and do not point at it (H4).
 - The reply handler as a working feature. It is off by default and the brief does not print a reply promise while it is off.
 - Any seeded Mail draft as agent output (H3).
 - A terminal.
@@ -92,10 +91,10 @@ Speaking rate is 2.5 words per second. Each Say cell fits its slot. Word counts 
 |---|---|---|---|
 | 0:00–0:17 | `#agents-floor` | The newest `—— Round … · pass 1 ——` header, then slow scroll down through `FINDING · Ops` cards into `FINDING · Follow-up` cards. Rest the cursor on one `ref:` line. If a `FINDING · Inbox` card is there, pass through it; if not, do not pause where it would be. | "This is Brightline Payroll. One stuck customer leaves signals in different tools. Three watchers, each with one lane: Ops reads the CRM, Inbox reads mail, Follow-up reads tasks and calendar. The cards on screen are facts and ids." |
 | 0:17–0:33 | `#agents-floor` | The `—— Round … · pass 2 · Desk merge ——` header and the first two `PROBLEM · … · rank` cards. Rest the cursor on a `merges:` line. | "Pass two. The Desk reads the whole floor and merges same-account cards into one ranked problem. Each problem card carries its evidence ids, so you can trace the merge back to the cards above it." |
-| 0:33–0:52 | `#agents-floor` | The `—— Refusal theater ——` header. Land on `ASSIGN · Inbox → send email to customer`, then `VERIFIER · refused`, then `BLOCKED · Inbox`. Then `ASSIGN · Ops → set_field`, `VERIFIER · refused`, `BLOCKED · Ops`. | "Before any worker acts, the Desk posts two deliberately unsafe asks. Send an email to a customer. Move a deal's stage. The verifier gate refuses both, and both end BLOCKED. These are safety tests, not customer work. The round runs them every time." |
+| 0:33–0:52 | `#agents-floor` | The `—— Refusal theater ——` header. Land on `ASSIGN · Inbox → send email to customer`, then `VERIFIER · refused`, then `BLOCKED · Inbox`. Then `ASSIGN · Ops → set_field`, `VERIFIER · refused`, `BLOCKED · Ops`. | "In this safety demo, the Desk posts two deliberately unsafe asks. Send an email to a customer. Move a deal's stage. The verifier gate refuses both, and both end BLOCKED. These are synthetic tests, not customer work." |
 | 0:52–1:10 | `#agents-floor` | One complete approved chain: `ASSIGN · Ops → add note`, `VERIFIER · approved`, `DONE · Ops · add_note`. Keep all three posts in frame together. | "Now the real work. Every assignment is one bounded step. The Desk posts ASSIGN. The gate posts its verdict: approved, refused, or needs rewrite. The worker posts DONE or BLOCKED. Nothing writes until the floor shows approved." |
 | 1:10–1:27 | `#agents-floor` | Slow scroll through the remaining chains toward `—— Work done this round ——`. If a `BLOCKED · Inbox · draft` post is there, let it pass through frame without stopping. | "Every step is on the floor as a post: the ask, the verdict, the receipt. Anyone can read the audit trail without a terminal. A BLOCKED receipt is not hidden. It means the worker stopped instead of guessing." |
-| 1:27–1:50 | `#attention` | Switch tabs. The one brief. Cursor on `item(s) need a person`, then down the owner names and `Evidence:` lines. Skip every `Ready:` line and stop scrolling above the last line of the post. | "Humans get one brief in attention, capped at three items in code. Each item names an owner and the evidence ids behind it. Everything else stayed on the floor, handled or blocked. Nothing was sent to a customer. No stage changed. No calendar was touched. The client cannot do those things." |
+| 1:27–1:50 | `#attention` | Switch tabs. The one brief. Cursor on `item(s) need a person`, then down the owner names and `Evidence:` lines. | "Humans get one brief in attention, capped at three items in code. Each item names an owner and the evidence ids behind it. Everything else stayed on the floor, handled or blocked. Nothing was sent to a customer. No stage changed. No calendar was touched. The client cannot do those things." |
 | 1:50–2:00 | `#agents-floor` | Switch back. One complete chain `ASSIGN`, `VERIFIER · approved`, `DONE` filling the frame. Stop scrolling before you speak. Let the recording run out after the line. | "Attention is a team sport. Most of the team does not have to be human." |
 
 ## Word counts

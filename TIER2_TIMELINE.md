@@ -111,10 +111,10 @@ python3 -m floor.round --no-model --timeline
 
 ```bash
 # Run and check for skip message
-python3 -m floor.round 2>&1 | grep "Timeline"
+python3 -m floor.round --no-model --timeline 2>&1 | grep "Timeline"
 
 # Verify Pine & Salt is not in top 3
-python3 -m floor.round 2>&1 | grep -A10 "Attention brief"
+python3 -m floor.round --no-model --timeline 2>&1 | grep -A10 "Attention brief"
 
 # Check timeline state after run
 cat .floor/timeline.json

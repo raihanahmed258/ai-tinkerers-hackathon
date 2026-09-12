@@ -33,13 +33,13 @@ With `--safety-demo`, `_refusal_theater` runs before productive work. It builds 
 
 The findings and the merge are derived. The priority order is a hand-written playbook prior. `floor/eval_unpinned.py --trace` measures it. On the heuristic path, with the stabilisers off the brief is Marigold, Sunset Taco, Harbor Fish. With them on it is Pine & Salt, Copper Kettle, T-1. Nothing was invented and backfill did not fire. Only the order changed. I defend the prior as what an ops lead would write down on day one: penalties and lost champions beat quiet deals. I do not defend it as learned behaviour.
 
-Two more things about the brief. Without `ANTHROPIC_API_KEY` the round silently uses heuristic rules and the brief is wrong: Ember Grill vanishes and item 3 is the bare task id T-1. `eval_expected` scores that AMBER. Loading the key is pre-roll blocker one. And the `Ready:` line prints planned actions from `problem.actions`, not executed ones, so a draft that BLOCKed still reads as ready. That is a bug.
+One more thing about the brief. Without `ANTHROPIC_API_KEY` the round uses heuristic rules and the brief is wrong: Ember Grill vanishes and item 3 is the bare task id T-1. `eval_expected` scores that AMBER. Loading the key is pre-roll blocker one. The old misleading `Ready:` line has been removed; execution truth stays in `DONE` and `BLOCKED` floor receipts.
 
 ## 6. Verifier-as-Desk is a seat constraint, not a cheat
 
 There is no Verifier seat and no Closer seat in the workspace. The VERIFIER verdict posts as Desk. The identity that carries the verdict is `as_agent("verifier")` (`floor/client.py` line 321). It tries `AMBIGUOUS_TOKEN_VERIFIER`, then `AMBIGUOUS_TOKEN_DESK`, and if neither is set it raises `PermissionError`. It never falls back to the default human token. `MCP_MAPPING.md` line 40 claims a fallback the code refuses; that line is wrong and PR #6 is in flight to fix the authorship docs.
 
-The consequence is that `python -m floor.round --live` with only the default token reads `AMBIGUOUS_API_KEY` or `AMBIGUOUS_TOKEN` (line 1570), posts the watcher findings, and dies at the first VERIFIER post inside refusal theater. Confirmed offline. Exporting `AMBIGUOUS_TOKEN_DESK` is a pre-roll blocker. Making the verifier a real seat requires exactly one thing: an Ambiguous agent named Verifier and its token in `AMBIGUOUS_TOKEN_VERIFIER`. `_worker_for_action` already routes notes to a Closer seat when `AMBIGUOUS_TOKEN_CLOSER` resolves. The seat is a token away, and fail-closed means the code will not pretend otherwise.
+`python -m floor.round --live` now preflights the default workspace token, Desk-or-Verifier token, and optional MCP dependency before posting anything. Exporting `AMBIGUOUS_TOKEN_DESK` remains a pre-roll blocker. A dedicated Verifier seat can instead use `AMBIGUOUS_TOKEN_VERIFIER`; fail-closed means the code will not pretend a human/default identity is that role.
 
 ## 7. Tier 2 timeline: on main, not in the recording
 
@@ -59,9 +59,7 @@ No sends. No stage moves. No close-date or calendar edits. No autonomous busines
 
 **Hours 6 to 10.** Move E-4 from Follow-up's `SHOULD_FLAG` to a Desk-merge expectation in `eval_expected`, and add E-3 to the heuristic rule. Demoable: Follow-up scores against what it can actually see, and the eval turns GREEN on the model path.
 
-**Hours 10 to 16.** Fix the `Ready:` line to print executed actions only. Demoable: a BLOCKed draft never appears as ready in `#attention`.
-
-**Hours 16 to 24.** Run with `FLOOR_REPLY_LOOP=1` and a scripted reply from dana naming a new Pine & Salt contact. Demoable: the reply resolves D-105 in `apply_safe_writeback`, writes `contact` on it through `set_deal_field` (a field none of the four layers block; `SAFE_FIELDS` is only consulted for date fields), records a durable CRM note, and `confirm_on_floor` posts `Recorded: …` to the floor as Desk.
+**Later, only if needed.** Run with `FLOOR_REPLY_LOOP=1` and a scripted reply from dana naming a new Pine & Salt contact. Demoable: the reply resolves D-105, records a durable CRM note, and confirms on the floor as Desk.
 
 **Hours 24 to 36.** Create Verifier and Closer seats in Ambiguous, export their tokens, and remove the Desk fallback for verdicts. Demoable: `VERIFIER · refused` posted by an identity that can post nothing else.
 

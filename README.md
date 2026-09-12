@@ -71,9 +71,9 @@ The mock path runs on **Python 3.9 or newer**, which is what macOS ships, so the
 | Mode | Command | What it talks to |
 |---|---|---|
 | **Mock** (default) | `python -m floor.round --no-model` | `MockClient`, entirely offline and in memory. `--no-model` guarantees no Anthropic call even when `.env` contains a key. |
-| **Live** | `python -m floor.round --live` | `McpClient` against an Ambiguous workspace over MCP (Streamable HTTP). Needs `AMBIGUOUS_API_KEY` or `AMBIGUOUS_TOKEN`; URL defaults to `https://app.ambiguous.ai/mcp` and `AMBIGUOUS_MCP_URL` overrides it. |
+| **Live** | `python -m floor.round --live` | `McpClient` against an Ambiguous workspace over MCP. Needs the default Ambiguous token plus `AMBIGUOUS_TOKEN_DESK` or a dedicated Verifier token; preflight exits before posting if configuration is incomplete. |
 
-Copy `.env.example` to `.env` for the available token names and optional flags. A live round writes many workspace objects; do not use `--live` as a routine smoke test.
+Copy `.env.example` to `.env` for token names, the optional URL override, and feature flags. The live path also requires `pip install "mcp>=1.0"`. A live round writes many workspace objects; do not use `--live` as a routine smoke test.
 
 Tool-by-tool mapping from this repo's `WorkspaceClient` interface to the real Ambiguous tool names is in [`MCP_MAPPING.md`](MCP_MAPPING.md). What got seeded into the live workspace, and with which ids, is in [`SEED_REPORT.md`](SEED_REPORT.md).
 
@@ -120,11 +120,11 @@ Ops is at ceiling and the brief lands in the right order. Inbox recall is the kn
 
 ## What works today, and what does not
 
-A validated mock round with the real model key on 2026-09-12 produced: **17 finding cards** on the floor (8 Ops, 3 Inbox, 6 Follow-up), **21 floor posts** in total, **3 tasks** created, and **one brief with exactly 3 human items** ranked Ember Grill, then Pine & Salt, then Copper Kettle. Every healthy control stayed unflagged. The raw log is [`MOCK_ROUND_VALIDATE3.txt`](MOCK_ROUND_VALIDATE3.txt) and the scorecard is [`MOCK_VALIDATE_REPORT3.md`](MOCK_VALIDATE_REPORT3.md).
+The committed model-backed validation artifact predates the current Tier 1 protocol. It produced 17 finding cards, 21 floor posts, 3 tasks, and a three-item brief ranked Ember Grill, Pine & Salt, then Copper Kettle. Use [`MOCK_ROUND_VALIDATE3.txt`](MOCK_ROUND_VALIDATE3.txt) only as evidence for that earlier run, not for the later `ASSIGN → VERIFIER → DONE/BLOCKED` protocol. A current no-model smoke test produces more audit posts and intentionally scores AMBER on ranking.
 
 Being straight about the edges, because a demo that overclaims is worse than one that concedes:
 
-- **The Desk's merge is visible in the brief, not on the floor.** Merged evidence shows up as the brief's `Evidence:` line joining a deal, a task and an event for one account. The Desk does not currently post a per-finding `PROBLEM` block in each card's thread.
+- **The Desk's merge is visible twice.** It posts up to five `PROBLEM` cards on the floor and repeats merged refs in each brief item's `Evidence:` line.
 - **Notes and drafts are wired but did not fire in the validated run.** `add_deal_note` and `create_draft` are implemented and exercised by the heuristic path. In the validated model run the Desk chose tasks and questions instead, so that log contains no CRM note and no draft.
 - **The visible refusal sequence is demo-only.** Pass `--safety-demo` to post the two synthetic unsafe requests and their refused/BLOCKED receipts. Normal rounds do not spend workspace writes on fake work.
 - **Stage and close-date writes are blocked in code.** The Verifier refuses `set_field`, and `McpClient.set_deal_field` independently raises for protected fields.

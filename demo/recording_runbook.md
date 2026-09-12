@@ -7,7 +7,7 @@ One take, one voice, exactly 2:00, entirely inside the Ambiguous workspace. Reco
 **Three pre-roll blockers.** Clear all three before the warm round. Each one has a section 3 entry if it bites during the take.
 
 1. `ANTHROPIC_API_KEY` loaded. Without it the code silently falls back to heuristic rules and the brief is wrong: rank 1 is not Ember Grill and item 3 is a bare task id. Confirm with the boolean command in section 3, case D. The model when the key is present is `claude-sonnet-4-5`.
-2. `AMBIGUOUS_TOKEN_DESK` exported in the shell that runs the round. `McpClient.as_agent("verifier")` tries `AMBIGUOUS_TOKEN_VERIFIER`, then `AMBIGUOUS_TOKEN_DESK`, and raises `PermissionError` if neither is set. The `--live` entry point reads only `AMBIGUOUS_API_KEY` or `AMBIGUOUS_TOKEN`, so with the default token alone the round dies at the first `VERIFIER` post. Confirm with the boolean command in section 3, case C.
+2. `AMBIGUOUS_TOKEN_DESK` exported in the shell that runs the round. `McpClient.as_agent("verifier")` tries `AMBIGUOUS_TOKEN_VERIFIER`, then `AMBIGUOUS_TOKEN_DESK`, and refuses a human/default fallback. The `--live` preflight checks this before posting anything. Confirm with the boolean command in section 3, case C.
 3. One warm round finished on the live floor, run with `--live --safety-demo` and with `--timeline` omitted. It ends with `—— Round … · done ——` in `#agents-floor` and a new brief in `#attention`. The historical demo produced roughly 100 writes, so avoid speculative live retries.
 
 Browser setup: one window, two tabs, `#agents-floor` first and `#attention` second. Nothing else open. Zoom the browser until one `FINDING` card fills roughly a third of the frame; that zoom is what lets the brief's last two lines fall below the fold in beat 6. Do Not Disturb on. Quit Mail, Slack, and Messages.
@@ -87,7 +87,7 @@ The chains are not meant to be read; the repeating labels are the point. Set the
 | 1:41–1:46 | `3. @priya — Copper Kettle Group ($84,000)` | 5 s | the item's first line |
 | 1:46–1:50 | no scroll | 4 s | item 3's `Evidence:` line, with `Handled without you: …` as the last visible line of the frame |
 
-Every item prints an owner-and-account line and a cause line, then `Evidence:` when the merge carries refs and `Ready:` when the problem carries actions. A problem backfilled by `_ensure_golden_problems` has no actions and no `Ready:` line. If item 3 has no `Evidence:` line, rest on its cause line for 1:46–1:50 instead. Never rest the cursor on a `Ready:` line: it prints planned actions, not execution receipts. With `FLOOR_REPLY_LOOP` off, the brief does not print a reply-handling promise.
+Every item prints an owner-and-account line and a cause line, then `Evidence:` when the merge carries refs. If item 3 has no `Evidence:` line, rest on its cause line for 1:46–1:50 instead. Execution status appears only in the floor's `DONE` and `BLOCKED` receipts. With `FLOOR_REPLY_LOOP` off, the brief does not print a reply-handling promise.
 
 The beat 6 Say cell names no account, no owner, and no dollar amount. Do not add them. The cursor on the owner lines is the receipt for "Each item names an owner".
 
@@ -133,9 +133,9 @@ The three lanes are code in `floor/router.py` and are true whether or not Inbox 
 
 ### Beat 3 · 0:33–0:52 · 43 words
 
-> Before any worker acts, the Desk posts two deliberately unsafe asks. Send an email to a customer. Move a deal's stage. The verifier gate refuses both, and both end BLOCKED. These are safety tests, not customer work. The round runs them every time.
+> In this safety demo, the Desk posts two deliberately unsafe asks. Send an email to a customer. Move a deal's stage. The verifier gate refuses both, and both end BLOCKED. These are synthetic tests, not customer work.
 
-"The round runs them every time" is true in code: `execute_actions` calls `_refusal_theater` unconditionally before any productive chain. A single-round take shows it once. See section 5, row 11.
+This block appears only because the recording command includes `--safety-demo`.
 
 ### Beat 4 · 0:52–1:10 · 37 words
 
@@ -194,11 +194,11 @@ Beat 7 has no `DONE` chain to return to. Use the last chain above `—— Work d
 **What to do in the next 5 minutes.**
 
 1. Minute 0. Stop the recording. Do not scroll the dead round; it stays above the next round's pass 1 header and out of frame.
-2. Minute 1. Put the Desk agent's token into the environment that runs the round, either as `AMBIGUOUS_TOKEN_DESK=…` on one line in `/Users/raihanahmed/Desktop/the-floor/.env`, which `round.py` loads at import, or as an export in the same shell. The token comes from the Ambiguous workspace where per-agent tokens are issued. Never paste it on camera and never print it.
+2. Minute 1. Put the Desk agent's token into the repo-root `.env` as `AMBIGUOUS_TOKEN_DESK=…`, or export it in the same shell. The token comes from the Ambiguous workspace where per-agent tokens are issued. Never paste it on camera and never print it.
 3. Minute 2. Confirm it loads without printing it:
 
    ```bash
-   cd /Users/raihanahmed/Desktop/the-floor && .venv/bin/python -c "import os,dotenv; dotenv.load_dotenv('.env'); print('desk or verifier token:', bool(os.environ.get('AMBIGUOUS_TOKEN_DESK') or os.environ.get('AMBIGUOUS_TOKEN_VERIFIER')))"
+   cd /path/to/the-floor && .venv/bin/python -c "import os,dotenv; dotenv.load_dotenv('.env'); print('desk or verifier token:', bool(os.environ.get('AMBIGUOUS_TOKEN_DESK') or os.environ.get('AMBIGUOUS_TOKEN_VERIFIER')))"
    ```
 
    You want `desk or verifier token: True`.
@@ -213,17 +213,17 @@ This retry spends one of the two retries in the round budget. If the second atte
 
 **What to do.**
 
-1. Create or fix `/Users/raihanahmed/Desktop/the-floor/.env` with one line, `ANTHROPIC_API_KEY=…`. Do not `cat` it, do not `echo` the variable, and do not open it in an editor on camera.
+1. Create or fix the repo-root `.env` with `ANTHROPIC_API_KEY=…`. Do not `cat` it, echo the variable, or open it on camera.
 2. Confirm it loads without printing it:
 
    ```bash
-   cd /Users/raihanahmed/Desktop/the-floor && .venv/bin/python -c "import os,dotenv; dotenv.load_dotenv('.env'); print('key loaded:', bool(os.environ.get('ANTHROPIC_API_KEY')))"
+   cd /path/to/the-floor && .venv/bin/python -c "import os,dotenv; dotenv.load_dotenv('.env'); print('key loaded:', bool(os.environ.get('ANTHROPIC_API_KEY')))"
    ```
 
    You want `key loaded: True`.
 3. Run one fresh live round. Check the new brief. Item 1 must read `1. @theo — Ember Grill`.
 
-**If the key is loaded and rank 1 is still not Ember Grill.** The stabiliser promotes to rank 1 only a problem whose account or evidence text contains "Ember" (`_stabilize_brief`, `floor/round.py`). A problem that only mentions T-4 or withholding gets owner theo but sorts after Pine & Salt and Copper Kettle and is cut by the three-item cap, which is what happens to `PROBLEM · T-4` in the mock. The backfill (`_ensure_golden_problems`) synthesises an Ember problem only when a pass 1 card mentions Ember, T-4, withholding, or penalty and no problem already mentions Ember, T-4, or withholding. If neither happened live, do not spend a second retry on it. The beat 6 Say cell names no account, owner, or dollar amount, so the words do not change. Record beat 6 with the section 1 choreography as written, resting on whichever three items the round produced, and keep the cursor off every `Ready:` line.
+**If the key is loaded and rank 1 is still not Ember Grill.** The stabiliser promotes to rank 1 only a problem whose account or evidence text contains "Ember" (`_stabilize_brief`, `floor/round.py`). A problem that only mentions T-4 or withholding gets owner theo but sorts after Pine & Salt and Copper Kettle and is cut by the three-item cap, which is what happens to `PROBLEM · T-4` in the mock. The backfill (`_ensure_golden_problems`) synthesises an Ember problem only when a pass 1 card mentions Ember, T-4, withholding, or penalty and no problem already mentions Ember, T-4, or withholding. If neither happened live, do not spend a second retry on it. The beat 6 words name no account, owner, or dollar amount, so they do not change.
 
 ### Case E · The Ops FINDING block is empty, or a PROBLEM card is titled by a UUID
 
@@ -247,7 +247,6 @@ None of these appears in the take, in a cutaway, or in a still. Each one either 
 | Source code, any file | The take is a product recording. Source belongs in the judge Q&A, not on screen. |
 | Mock transcript, including `MOCK_ROUND_VALIDATE3.txt` and any `run.txt` | No mock output is evidence of the live protocol, and the only committed validation predates the protocol entirely. |
 | Mail drafts, the Mail tab, any draft object | The three drafts in the live Mail were placed during seeding and are not agent output. Live agent drafts BLOCK on the empty inbox. |
-| The `Ready:` line under any brief item | It prints planned actions, not executed ones. Live it can read `draft reply` for a draft that never existed. |
 | Reply handling | Implemented behind `FLOOR_REPLY_LOOP=1`, off for this recording. The brief makes no reply promise while off. |
 | Timeline or any `[Timeline] Skipped re-escalation` line | Optional behind `--timeline`, off for this recording. Runtime state is outside tracked seed data. |
 | Any file under `prompts/` | `prompts/desk.md` names the expected merges and the required brief order. On screen it turns the derived merge into a script. |
@@ -270,9 +269,9 @@ Fill the timestamp column from the finished recording. Every spoken claim needs 
 | 6 | The cards on screen are facts and ids | `#agents-floor` | the `ref:` and `what:` lines of the cards under the cursor | __:__ |
 | 7 | Pass two. The Desk reads the whole floor and merges same-account cards into one ranked problem | `#agents-floor` | `—— Round <stamp> · pass 2 · Desk merge ——`, line `Merged N findings → M problem(s).`, then `PROBLEM · <account> · rank 1` | __:__ |
 | 8 | Each problem card carries its evidence ids, so you can trace the merge back to the cards above it | `#agents-floor` | the `merges:` line on the rank 1 and rank 2 cards; the ids match `ref:` lines from beat 1 | __:__ |
-| 9 | Before any worker acts, the Desk posts two deliberately unsafe asks | `#agents-floor` | `—— Refusal theater · unsafe asks (must not execute) ——`, placed before the first approved chain; `ASSIGN · Inbox → send email to customer` and `ASSIGN · Ops → set_field` | __:__ |
+| 9 | In this safety demo, the Desk posts two deliberately unsafe asks | `#agents-floor` | `—— Refusal theater · unsafe asks (must not execute) ——`, placed before the first approved chain; `ASSIGN · Inbox → send email to customer` and `ASSIGN · Ops → set_field` | __:__ |
 | 10 | Send an email to a customer. Move a deal's stage. The verifier gate refuses both, and both end BLOCKED | `#agents-floor` | `VERIFIER · refused` with reason `customer send is forbidden; draft only`, then `BLOCKED · Inbox · send email to customer`; `VERIFIER · refused` with reason `field 'stage' is blocked (safety)`, then `BLOCKED · Ops · set_field` | __:__ |
-| 11 | These are safety tests, not customer work. The round runs them every time | `#agents-floor` | header line `Desk received two out-of-policy requests. Verifier must refuse both.`; "every time" has no on-screen receipt in a single-round take: it is the unconditional `_refusal_theater` call at the top of `execute_actions`, answered in Q&A, or cut that sentence from the Say cell before submitting | __:__ |
+| 11 | These are synthetic tests, not customer work | `#agents-floor` | header line `Desk received two out-of-policy requests. Verifier must refuse both.` | __:__ |
 | 12 | Every assignment is one bounded step | `#agents-floor` | `ASSIGN · Ops → add note` carries one action, one account, one ref | __:__ |
 | 13 | The Desk posts ASSIGN | `#agents-floor` | `ASSIGN · Ops → add note`, line `rule: wait for VERIFIER · approved before write` | __:__ |
 | 14 | The gate posts its verdict: approved, refused, or needs rewrite | `#agents-floor` | `VERIFIER · approved`, reason `allowlist + safety checks passed`; `refused` receipts are row 10; `needs_rewrite` has no on-screen receipt in this round and is answered from `_verify_action` in Q&A, or cut those two words from the Say cell before submitting | __:__ |
@@ -293,5 +292,5 @@ Fill the timestamp column from the finished recording. Every spoken claim needs 
 Three checks after the table is full.
 
 1. Rows 11, 14, and 26 each carry a spoken claim with no on-screen receipt. Before submitting, decide each one the same way: either the sentence stays and the Q&A answer named in the row is ready, or the sentence is cut from `demo/script.md` and re-recorded. Write the decision here: __ / __ / __
-2. Search the recording for `Ready:` lines. If one is legible, note the timestamp here and re-record beat 6 with more zoom: __:__
+2. Confirm every completion claim you make has a visible `DONE` receipt; note the timestamp of any mismatch: __:__
 3. Search the recording for the word "draft" in the audio; it should not be there. Then search the frames for `DONE · Inbox · draft` and for any `BLOCKED · Inbox · draft` that the cursor rested on. A `BLOCKED · Inbox · draft` that only passed through during the beat 5 scroll is expected and is a receipt for row 19. A `DONE · Inbox · draft` should not exist live, because the inbox is empty. If either flagged case is there, decide whether to cut the beat before submitting, because it will get the question in section 3, case A1.

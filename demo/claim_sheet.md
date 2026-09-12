@@ -15,7 +15,7 @@ Every other file in `demo/` must agree with this sheet. If a doc and this sheet 
 ## WILL NOT CLAIM
 
 - A model-validated run of the current protocol. The only validation artifact predates the protocol (H1). The counts we quote come from the offline mock on the heuristic path.
-- A live Inbox finding, a live Mail draft as agent output, or the `Ready:` line in the brief (H3, H4). The three drafts in the workspace were placed during seeding.
+- A live Inbox finding or a live Mail draft as agent output. The three drafts in the workspace were placed during seeding.
 - The reply loop as working. It is implemented in `floor/reply_handler.py` behind `FLOOR_REPLY_LOOP`, off by default, and the brief does not promise reply handling while it is off.
 - The account timeline as demonstrated. It is merged but opt-in (`--timeline`), uses ignored runtime state under `.floor/`, and is kept off for the recording. The `rank=None` fix is present on current `main`.
 - The brief order as model judgment. Findings and merge are derived; ranks 1 to 3 and their owners are a hand-written playbook prior in `_stabilize_brief` (H7). No budget figure, no schedule running, and no dedicated Verifier or Closer seat (H8).

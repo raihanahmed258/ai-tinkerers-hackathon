@@ -1,19 +1,9 @@
-"""The round — two passes. THIS IS THE DAY-OF BUILD. Everything here is a skeleton with the shape
-worked out so you can write the logic fast; nothing below calls a model yet.
+"""Run one bounded, two-pass Floor round.
 
-    python -m floor.round            # run one round against the mock (offline)
-    python -m floor.round --live     # run against the workspace once McpClient is mapped
-
-Pass 1  each watcher gets its slice of the workspace + its playbook, returns finding cards, posts them
-Pass 2  the Desk reads the floor, merges into problems, posts decisions in-thread, @mentions agents,
-        watchers execute assigned actions, Desk posts the brief to #attention
-
-Ladder (stop wherever you are at 15:15 and record):
-  rung 1  Ops only, pass 1, cards on the floor                        -> submittable
-  rung 2  Desk reads the floor, posts the brief                        -> the multiplayer moment
-  rung 3  Inbox + Follow-up, merge, CRM note + draft + task actions    -> the demo
-  rung 4  human-reply loop (poll the brief thread, write back)          -> the ending
-  rung 5  roster as a Sheet in the workspace                          -> only if time
+Pass 1 gives each watcher its hard data lane and posts finding cards. Pass 2
+merges those cards, verifies bounded actions, executes approved work, and posts
+one human brief. Use ``--no-model`` for a guaranteed no-cost local smoke test;
+``--safety-demo`` and ``--timeline`` are explicit opt-ins.
 """
 from __future__ import annotations
 import argparse, datetime as dt, json, os, re, time
@@ -50,6 +40,22 @@ def _timeline_store():
     if not _env_enabled("FLOOR_TIMELINE"):
         return None
     return get_default_store()
+
+
+def _valid_timeline_account(account: str) -> bool:
+    """Persist human-readable accounts, never raw refs or UUID placeholders."""
+    value = _text(account).strip()
+    if not value or value in {"—", "-"}:
+        return False
+    if re.fullmatch(r"[DMTE]-\d+", value, flags=re.IGNORECASE):
+        return False
+    if re.fullmatch(
+        r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
+        value,
+        flags=re.IGNORECASE,
+    ):
+        return False
+    return True
 
 
 def playbook(agent: dict) -> str:
@@ -307,7 +313,7 @@ def _ops_backfill(findings: list[dict], deals: list[dict]) -> list[dict]:
 
 
 def _heuristic_watcher(agent_id: str, slice_data: dict) -> list[dict]:
-    """Fallback heuristic rules when no OpenAI API key is present."""
+    """Fallback heuristic rules when Anthropic calls are unavailable or disabled."""
     findings = []
     
     if agent_id == "ops":
@@ -728,6 +734,8 @@ Please analyze these findings and merge them into PROBLEM blocks. Return a JSON 
             if not p.get("human"):
                 continue
             account = _text(p.get("account"))
+            if not _valid_timeline_account(account):
+                continue
             should_escalate, reason = timeline.should_escalate(account)
             if not should_escalate:
                 # Downgrade to note-only, don't count toward human slots
@@ -754,7 +762,7 @@ Please analyze these findings and merge them into PROBLEM blocks. Return a JSON 
     if timeline:
         for p in problems:
             account = _text(p.get("account"))
-            if not account or account in ("—", "-"):
+            if not _valid_timeline_account(account):
                 continue
 
             # Track drafts
@@ -1560,19 +1568,6 @@ def post_brief(problems: list[dict], ws: WorkspaceClient) -> str:
         lines.append(f"   {cause}")
         if refs:
             lines.append(f"   Evidence: {refs}")
-        actions = problem.get("actions") or []
-        if actions:
-            # Scrub "send" language to reinforce agents-never-send
-            ready_items = []
-            for a in actions:
-                action_name = _text(a.get("action", ""))
-                if "draft" in action_name.lower() or "send" in action_name.lower():
-                    ready_items.append("draft (approve / decide — agents never send)")
-                elif action_name:
-                    ready_items.append(action_name)
-            if ready_items:
-                ready = ", ".join(ready_items)
-                lines.append(f"   Ready: {ready}")
         lines.append("")
 
     if handled_items:
@@ -1673,9 +1668,23 @@ if __name__ == "__main__":
     if args.timeline:
         os.environ["FLOOR_TIMELINE"] = "1"
     if args.live:
+        token = os.environ.get("AMBIGUOUS_API_KEY") or os.environ.get("AMBIGUOUS_TOKEN")
+        if not token:
+            ap.error("--live requires AMBIGUOUS_API_KEY or AMBIGUOUS_TOKEN")
+        if not (
+            resolve_agent_token("verifier")
+            or resolve_agent_token("desk")
+        ):
+            ap.error(
+                "--live requires AMBIGUOUS_TOKEN_DESK or AMBIGUOUS_TOKEN_VERIFIER "
+                "so Verifier posts fail closed before any workspace writes"
+            )
+        try:
+            import mcp  # noqa: F401
+        except ImportError:
+            ap.error('--live requires the optional dependency: pip install "mcp>=1.0"')
         from .client import McpClient
         url = os.environ.get("AMBIGUOUS_MCP_URL", "https://app.ambiguous.ai/mcp")
-        token = os.environ.get("AMBIGUOUS_API_KEY") or os.environ.get("AMBIGUOUS_TOKEN")
         ws = McpClient(url, token)
     else:
         ws = MockClient()

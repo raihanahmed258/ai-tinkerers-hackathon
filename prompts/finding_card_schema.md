@@ -34,7 +34,7 @@ human: <none | @name — one sentence>
 
 ```
 Attention brief · <date> · <n> items need a person · everything else handled on the floor
-1. @<name> — <account> ($<arr>): <what and why, two sentences max>. Evidence: <refs>. Ready: <what the agents prepared, e.g. "draft reply in Mail">.
+1. @<name> — <account> ($<arr>): <what and why, two sentences max>. Evidence: <refs>.
 2. ...
 3. ...
 Handled without you: <one line listing the problems the agents resolved or drafted>

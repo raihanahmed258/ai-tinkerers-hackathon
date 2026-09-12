@@ -1,19 +1,9 @@
-"""The round — two passes. THIS IS THE DAY-OF BUILD. Everything here is a skeleton with the shape
-worked out so you can write the logic fast; nothing below calls a model yet.
+"""Run one bounded, two-pass Floor round.
 
-    python -m floor.round            # run one round against the mock (offline)
-    python -m floor.round --live     # run against the workspace once McpClient is mapped
-
-Pass 1  each watcher gets its slice of the workspace + its playbook, returns finding cards, posts them
-Pass 2  the Desk reads the floor, merges into problems, posts decisions in-thread, @mentions agents,
-        watchers execute assigned actions, Desk posts the brief to #attention
-
-Ladder (stop wherever you are at 15:15 and record):
-  rung 1  Ops only, pass 1, cards on the floor                        -> submittable
-  rung 2  Desk reads the floor, posts the brief                        -> the multiplayer moment
-  rung 3  Inbox + Follow-up, merge, CRM note + draft + task actions    -> the demo
-  rung 4  human-reply loop (poll the brief thread, write back)          -> the ending
-  rung 5  roster as a Sheet in the workspace                          -> only if time
+Pass 1 gives each watcher its hard data lane and posts finding cards. Pass 2
+merges those cards, verifies bounded actions, executes approved work, and posts
+one human brief. Use ``--no-model`` for a guaranteed no-cost local smoke test;
+``--safety-demo`` and ``--timeline`` are explicit opt-ins.
 """
 from __future__ import annotations
 import argparse, datetime as dt, json, os, re, time
@@ -32,6 +22,40 @@ from .timeline import get_default_store
 
 ROOT = Path(__file__).resolve().parent.parent
 CFG = yaml.safe_load((ROOT / "agents.yaml").read_text(encoding="utf-8"))
+
+
+def _env_enabled(name: str) -> bool:
+    return os.environ.get(name, "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def _model_api_key() -> str | None:
+    """Return the model key unless this run explicitly disabled paid calls."""
+    if _env_enabled("FLOOR_NO_MODEL"):
+        return None
+    return os.environ.get("ANTHROPIC_API_KEY")
+
+
+def _timeline_store():
+    """Timeline is opt-in until its state has been deliberately configured."""
+    if not _env_enabled("FLOOR_TIMELINE"):
+        return None
+    return get_default_store()
+
+
+def _valid_timeline_account(account: str) -> bool:
+    """Persist human-readable accounts, never raw refs or UUID placeholders."""
+    value = _text(account).strip()
+    if not value or value in {"—", "-"}:
+        return False
+    if re.fullmatch(r"[DMTE]-\d+", value, flags=re.IGNORECASE):
+        return False
+    if re.fullmatch(
+        r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
+        value,
+        flags=re.IGNORECASE,
+    ):
+        return False
+    return True
 
 
 def playbook(agent: dict) -> str:
@@ -289,7 +313,7 @@ def _ops_backfill(findings: list[dict], deals: list[dict]) -> list[dict]:
 
 
 def _heuristic_watcher(agent_id: str, slice_data: dict) -> list[dict]:
-    """Fallback heuristic rules when no OpenAI API key is present."""
+    """Fallback heuristic rules when Anthropic calls are unavailable or disabled."""
     findings = []
     
     if agent_id == "ops":
@@ -572,7 +596,7 @@ def run_watcher(agent: dict, ws: WorkspaceClient) -> list[str]:
     system_prompt = playbook(agent)
     
     # Check for API key
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    api_key = _model_api_key()
     
     if not api_key:
         # Fallback: use heuristic rules for demo purposes when no API key
@@ -590,8 +614,12 @@ def run_watcher(agent: dict, ws: WorkspaceClient) -> list[str]:
 Please analyze this data according to your instructions and return a JSON object with a "findings" array. Each finding should have: agent, confidence, account, ref, what, why_stalled, evidence, proposed, needs_human."""
             
             response = client.messages.create(
-                model=CFG["defaults"].get("model", "claude-sonnet-4-5"),
-                max_tokens=4096,
+                model=CFG["defaults"].get("model", "claude-sonnet-5"),
+                # Sonnet 5 enables adaptive thinking by default. This endpoint
+                # needs only machine-readable JSON; hidden thinking consumes
+                # the same output budget and can leave the JSON truncated.
+                thinking={"type": "disabled"},
+                max_tokens=8192,
                 system=system_prompt,
                 messages=[
                     {"role": "user", "content": user_msg}
@@ -638,7 +666,7 @@ def run_desk_merge(cards: list[str], ws: WorkspaceClient) -> list[dict]:
     {account, rank, merges:[refs], cause, actions:[{agent, action, args}], human: None|{who, text}}.
     Enforce in code: max 3 human items; nothing customer-facing is 'send'; unclear -> ask, not escalate."""
     
-    timeline = get_default_store()
+    timeline = _timeline_store()
     
     # Parse cards back to structured data
     findings = []
@@ -647,7 +675,7 @@ def run_desk_merge(cards: list[str], ws: WorkspaceClient) -> list[dict]:
         if parsed:
             findings.append(parsed)
     
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
+    api_key = _model_api_key()
     
     if not api_key:
         # Heuristic merge
@@ -666,8 +694,9 @@ def run_desk_merge(cards: list[str], ws: WorkspaceClient) -> list[dict]:
 Please analyze these findings and merge them into PROBLEM blocks. Return a JSON object with a "problems" array. Each problem should have: account, rank, merges (array of refs), cause, actions (array of {{agent, action, args}}), human (null or {{who, text}})."""
             
             response = client.messages.create(
-                model=CFG["defaults"].get("model", "claude-sonnet-4-5"),
-                max_tokens=4096,
+                model=CFG["defaults"].get("model", "claude-sonnet-5"),
+                thinking={"type": "disabled"},
+                max_tokens=8192,
                 system=desk_prompt,
                 messages=[
                     {"role": "user", "content": user_msg}
@@ -705,15 +734,18 @@ Please analyze these findings and merge them into PROBLEM blocks. Return a JSON 
     problems = _stabilize_brief(problems)
 
     # Check timeline: downgrade re-escalations for accounts already waiting on humans
-    for p in problems:
-        if not p.get("human"):
-            continue
-        account = _text(p.get("account"))
-        should_escalate, reason = timeline.should_escalate(account)
-        if not should_escalate:
-            # Downgrade to note-only, don't count toward human slots
-            p["human"] = None
-            p["_timeline_skip"] = reason  # Track why for logging
+    if timeline:
+        for p in problems:
+            if not p.get("human"):
+                continue
+            account = _text(p.get("account"))
+            if not _valid_timeline_account(account):
+                continue
+            should_escalate, reason = timeline.should_escalate(account)
+            if not should_escalate:
+                # Downgrade to note-only, don't count toward human slots
+                p["human"] = None
+                p["_timeline_skip"] = reason  # Track why for logging
     
     # Enforce constraints
     human_items = [p for p in problems if p.get("human")]
@@ -732,22 +764,23 @@ Please analyze these findings and merge them into PROBLEM blocks. Return a JSON 
                 action["action"] = _text(action.get("action")).replace("send", "draft").replace("Send", "draft")
     
     # Update timeline for decisions made
-    for p in problems:
-        account = _text(p.get("account"))
-        if not account or account in ("—", "-"):
-            continue
-        
-        # Track drafts
-        for action in p.get("actions", []):
-            if "draft" in _text(action.get("action")).lower():
-                ref = _text(action.get("args", {}).get("ref"))
-                if ref:
-                    timeline.update(account, add_draft=ref)
-        
-        # Track escalations
-        if p.get("human"):
-            cause = _text(p.get("cause")) or _text(p.get("human", {}).get("text"))
-            timeline.update(account, escalate=True, escalation_cause=cause)
+    if timeline:
+        for p in problems:
+            account = _text(p.get("account"))
+            if not _valid_timeline_account(account):
+                continue
+
+            # Track drafts
+            for action in p.get("actions", []):
+                if "draft" in _text(action.get("action")).lower():
+                    ref = _text(action.get("args", {}).get("ref"))
+                    if ref:
+                        timeline.update(account, add_draft=ref)
+
+            # Track escalations
+            if p.get("human"):
+                cause = _text(p.get("cause")) or _text(p.get("human", {}).get("text"))
+                timeline.update(account, escalate=True, escalation_cause=cause)
     
     return problems
 
@@ -1344,8 +1377,9 @@ def execute_actions(problems: list[dict], ws: WorkspaceClient) -> None:
     floor = CFG["channels"]["floor"]
     done_lines: list[str] = []
 
-    # Visible safety story before productive work
-    _refusal_theater(ws, problems)
+    # Optional demo-only safety story before productive work.
+    if _env_enabled("FLOOR_SAFETY_DEMO"):
+        _refusal_theater(ws, problems)
 
     for problem in problems:
         actions = _ensure_productive_actions(problem)
@@ -1539,19 +1573,6 @@ def post_brief(problems: list[dict], ws: WorkspaceClient) -> str:
         lines.append(f"   {cause}")
         if refs:
             lines.append(f"   Evidence: {refs}")
-        actions = problem.get("actions") or []
-        if actions:
-            # Scrub "send" language to reinforce agents-never-send
-            ready_items = []
-            for a in actions:
-                action_name = _text(a.get("action", ""))
-                if "draft" in action_name.lower() or "send" in action_name.lower():
-                    ready_items.append("draft (approve / decide — agents never send)")
-                elif action_name:
-                    ready_items.append(action_name)
-            if ready_items:
-                ready = ", ".join(ready_items)
-                lines.append(f"   Ready: {ready}")
         lines.append("")
 
     if handled_items:
@@ -1561,7 +1582,8 @@ def post_brief(problems: list[dict], ws: WorkspaceClient) -> str:
         lines.append(f"Handled without you: {handled_accounts}")
         lines.append("")
 
-    lines.append("Reply in this thread and I'll record it.")
+    if _env_enabled("FLOOR_REPLY_LOOP"):
+        lines.append("Reply in this thread and I'll record it.")
     
     brief = "\n".join(lines)
     
@@ -1633,19 +1655,41 @@ def run_round(ws: WorkspaceClient) -> None:
     # Rung 4 — human reply handler (off by default; set FLOOR_REPLY_LOOP=1 to enable)
     # Or call reply_loop(brief_id, ws) standalone / after seeding a thread reply.
     # reply_loop(brief_id, ws)   # rung 4 (commented; prefer env flag below)
-    if os.environ.get("FLOOR_REPLY_LOOP", "").strip() in ("1", "true", "yes"):
+    if _env_enabled("FLOOR_REPLY_LOOP"):
         reply_loop(brief_id, ws)
 
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--live", action="store_true", help="run against the workspace via McpClient")
+    ap.add_argument("--no-model", action="store_true", help="never call Anthropic; use offline heuristics")
+    ap.add_argument("--safety-demo", action="store_true", help="post the two demo-only refusal chains")
+    ap.add_argument("--timeline", action="store_true", help="enable persistent cross-round escalation state")
     args = ap.parse_args()
+    if args.no_model:
+        os.environ["FLOOR_NO_MODEL"] = "1"
+    if args.safety_demo:
+        os.environ["FLOOR_SAFETY_DEMO"] = "1"
+    if args.timeline:
+        os.environ["FLOOR_TIMELINE"] = "1"
     if args.live:
-        from .client import McpClient
-        import os
-        url = os.environ.get("AMBIGUOUS_MCP_URL", "https://app.ambiguous.ai/mcp")
         token = os.environ.get("AMBIGUOUS_API_KEY") or os.environ.get("AMBIGUOUS_TOKEN")
+        if not token:
+            ap.error("--live requires AMBIGUOUS_API_KEY or AMBIGUOUS_TOKEN")
+        if not (
+            resolve_agent_token("verifier")
+            or resolve_agent_token("desk")
+        ):
+            ap.error(
+                "--live requires AMBIGUOUS_TOKEN_DESK or AMBIGUOUS_TOKEN_VERIFIER "
+                "so Verifier posts fail closed before any workspace writes"
+            )
+        try:
+            import mcp  # noqa: F401
+        except ImportError:
+            ap.error('--live requires the optional dependency: pip install "mcp>=1.0"')
+        from .client import McpClient
+        url = os.environ.get("AMBIGUOUS_MCP_URL", "https://app.ambiguous.ai/mcp")
         ws = McpClient(url, token)
     else:
         ws = MockClient()

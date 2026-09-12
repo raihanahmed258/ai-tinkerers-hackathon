@@ -1,14 +1,18 @@
-# The Floor — always-on agent teammates that do the attention job
+# The Floor — agent teammates that do the attention job
 
 Built at **AI Tinkerers Ottawa — Agents, Everywhere** (September 2026).
 
-Three narrow watchers, one Desk that merges and decides, an agent-only channel where they coordinate, and a three-item brief for humans.
+Three narrow watchers, one Desk that merges and decides, an agent-only channel
+where they coordinate, and a human brief capped at three items.
+
+> **Demoing now?** Start with [`DEMO_NOW.md`](DEMO_NOW.md). It points to the
+> completed live round and avoids another paid run.
 
 > **Tier 1 live demo:** The visible handoff is `ASSIGN → VERIFIER · approved | refused | needs_rewrite → DONE | BLOCKED`. The Ambiguous-only shot list is [`demo/script.md`](demo/script.md); it is the source of truth for what the live recording claims.
 
 **The problem.** At a small company one stuck customer does not arrive as one alert. It arrives as four weak signals nobody connects: a deal gone quiet in the CRM, an email nobody answered, an overdue task, and a promise someone made in chat and never kept. No human's job is to read all four every morning, so things slip. The quote never goes out. The kickoff never gets booked. The champion leaves. The filing deadline passes.
 
-**The shape of the fix.** A small floor of always-on agents that each watch one slice, post what they see to a channel of their own, and let one of them merge the pieces back into single problems. Humans get at most three of them a day.
+**The shape of the fix.** A small floor of agents that each watch one slice, post what they see to a channel of their own, and let one of them merge the pieces back into single problems. Humans get at most three of them per round.
 
 Nothing here is from any real company. Brightline Payroll, its people and its customers are invented.
 
@@ -44,7 +48,10 @@ Two different strengths of guarantee here, and they are worth keeping apart. Som
 
 **Enforced by prompt and honoured in practice, but the capability is there.**
 
-- **Stage and close-date changes.** The Tier 1 Verifier refuses moves to either field before a worker can act. Each round visibly tests that boundary with a fake `move stage` request; no real stage or close-date change is made.
+- **Stage and close-date changes.** The Tier 1 Verifier refuses moves to either
+  field before a worker can act. Recording mode (`--safety-demo`) visibly tests
+  that boundary with a fake `move stage` request; normal rounds omit the
+  synthetic test. No real stage or close-date change is made.
 - **Facts and dates, never opinions about people.** The "never" list in `agents.yaml`, reinforced in every playbook, plus a filter in code that drops findings containing feeling-words about customers or judgements about colleagues.
 
 **Read-heavy, write-light either way.** Tier 1 keeps the visible worker surface to bounded internal work and floor messages; it never sends customer mail or moves stages or close dates. The Verifier refuses and logs work outside that boundary.
@@ -57,7 +64,7 @@ Two different strengths of guarantee here, and they are worth keeping apart. Som
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 .venv/bin/python -m floor.seed     # 20 deals, 12 threads, 9 tasks, 9 events, 26 chat messages
-.venv/bin/python -m floor.round    # one full round against the in-memory mock
+.venv/bin/python -m floor.round --no-model  # free offline smoke test
 ```
 
 The mock path runs on **Python 3.9 or newer**, which is what macOS ships, so the offline round works on a stock Mac with nothing installed. The live path additionally needs **Python 3.10 or newer** and the `mcp` package, which is commented out of `requirements.txt` for exactly that reason:
@@ -70,16 +77,19 @@ The mock path runs on **Python 3.9 or newer**, which is what macOS ships, so the
 
 | Mode | Command | What it talks to |
 |---|---|---|
-| **Mock** (default) | `python -m floor.round` | `MockClient`, entirely offline and in memory. Every post, draft, note and task prints to the terminal. |
-| **Live** | `python -m floor.round --live` | `McpClient` against an Ambiguous workspace over MCP (Streamable HTTP). Needs `AMBIGUOUS_API_KEY` or `AMBIGUOUS_TOKEN`; URL defaults to `https://app.ambiguous.ai/mcp` and `AMBIGUOUS_MCP_URL` overrides it. |
+| **Mock** (default) | `python -m floor.round --no-model` | `MockClient`, entirely offline and in memory. `--no-model` guarantees no Anthropic call even when `.env` contains a key. |
+| **Live** | `python -m floor.round --live` | `McpClient` against an Ambiguous workspace over MCP. Needs the default Ambiguous token plus `AMBIGUOUS_TOKEN_DESK` or a dedicated Verifier token; preflight exits before posting if configuration is incomplete. |
+
+Copy `.env.example` to `.env` for token names, the optional URL override, and feature flags. The live path also requires `pip install "mcp>=1.0"`. A live round writes many workspace objects; do not use `--live` as a routine smoke test.
 
 Tool-by-tool mapping from this repo's `WorkspaceClient` interface to the real Ambiguous tool names is in [`MCP_MAPPING.md`](MCP_MAPPING.md). What got seeded into the live workspace, and with which ids, is in [`SEED_REPORT.md`](SEED_REPORT.md).
 
 ### The model key is not optional
 
-Set `ANTHROPIC_API_KEY` (in `.env` or the environment) before you trust a run. The model is `claude-sonnet-4-5`, set in `agents.yaml › defaults.model`.
+Set `ANTHROPIC_API_KEY` (in `.env` or the environment) before you trust a run.
+The model is `claude-sonnet-5`, set in `agents.yaml › defaults.model`.
 
-There is a heuristic fallback that runs when the key is missing or a model call throws, so the round always produces output. **It is a smoke test, not the product.** Without the key the brief comes out materially wrong: the highest-priority item disappears and one item degenerates into a bare task id. If you are recording, demoing, or judging this, confirm the key is loaded first.
+There is a heuristic fallback that runs when the key is missing, a model call throws, or `--no-model` is set. **It is a smoke test, not a model-validated result.** Use `--no-model` for cleanup and local checks so an existing `.env` cannot spend credits accidentally. If you are recording a model-backed run, confirm the key is loaded first.
 
 ```bash
 .venv/bin/python -c "import os,dotenv; dotenv.load_dotenv('.env'); print('key loaded:', bool(os.environ.get('ANTHROPIC_API_KEY')))"
@@ -92,7 +102,7 @@ For the short evaluation flow and the meaning of `GREEN`, `AMBER`, and `RED`, se
 The seed was built so a good round is checkable rather than a matter of taste, and [`seed/expected_findings.md`](seed/expected_findings.md) is the golden answer. `floor/eval_expected.py` scores a captured round against it:
 
 ```bash
-.venv/bin/python -m floor.round | tee run.txt
+.venv/bin/python -m floor.round --no-model | tee run.txt
 .venv/bin/python -m floor.eval_expected run.txt
 ```
 
@@ -118,15 +128,23 @@ Ops is at ceiling and the brief lands in the right order. Inbox recall is the kn
 
 ## What works today, and what does not
 
-A validated mock round with the real model key on 2026-09-12 produced: **17 finding cards** on the floor (8 Ops, 3 Inbox, 6 Follow-up), **21 floor posts** in total, **3 tasks** created, and **one brief with exactly 3 human items** ranked Ember Grill, then Pine & Salt, then Copper Kettle. Every healthy control stayed unflagged. The raw log is [`MOCK_ROUND_VALIDATE3.txt`](MOCK_ROUND_VALIDATE3.txt) and the scorecard is [`MOCK_VALIDATE_REPORT3.md`](MOCK_VALIDATE_REPORT3.md).
+The committed model-backed validation artifact predates the current Tier 1 protocol. It produced 17 finding cards, 21 floor posts, 3 tasks, and a three-item brief ranked Ember Grill, Pine & Salt, then Copper Kettle. Use [`MOCK_ROUND_VALIDATE3.txt`](MOCK_ROUND_VALIDATE3.txt) only as evidence for that earlier run, not for the later `ASSIGN → VERIFIER → DONE/BLOCKED` protocol. A current no-model smoke test produces more audit posts and intentionally scores AMBER on ranking.
+
+A complete current Tier 1 round is visible in the live Ambiguous workspace. It
+ran from 15:22–15:27 EDT on 2026-09-12 using the Sonnet 5 configuration: 15
+findings across Ops and Follow-up, five posted problem cards, both safety
+refusals, approved work, a done marker, and a clean three-item brief.
+[`LIVE_ROUND_REPORT.md`](LIVE_ROUND_REPORT.md) records the message ids and
+limits.
 
 Being straight about the edges, because a demo that overclaims is worse than one that concedes:
 
-- **The Desk's merge is visible in the brief, not on the floor.** Merged evidence shows up as the brief's `Evidence:` line joining a deal, a task and an event for one account. The Desk does not currently post a per-finding `PROBLEM` block in each card's thread.
+- **The Desk's merge is visible twice.** It posts up to five `PROBLEM` cards on the floor and repeats merged refs in each brief item's `Evidence:` line.
 - **Notes and drafts are wired but did not fire in the validated run.** `add_deal_note` and `create_draft` are implemented and exercised by the heuristic path. In the validated model run the Desk chose tasks and questions instead, so that log contains no CRM note and no draft.
-- **The refusal is real code, not a visible demo moment.** Nothing in a normal round trips the allowlist, so you prove it by reading `execute_actions`, not by watching it happen.
-- **The allowlist is wider than the playbooks.** `set_field` is in it and the live client can write a stage or a close date, so the no-stage-change guarantee is a prompt, not a wall. Nothing exercised it in the validated run. Better to say that than to claim a wall that is not there.
-- **The human reply loop is designed and stubbed, not wired.** `reply_loop` exists with the intended shape and is commented out of `run_round`. A human answering in the brief thread and the Desk writing it back to the CRM is the next piece of work, not a thing to claim today.
+- **The visible refusal sequence is demo-only.** Pass `--safety-demo` to post the two synthetic unsafe requests and their refused/BLOCKED receipts. Normal rounds do not spend workspace writes on fake work.
+- **Stage and close-date writes are blocked in code.** The Verifier refuses `set_field`, and `McpClient.set_deal_field` independently raises for protected fields.
+- **The human reply handler exists but is off by default.** Set `FLOOR_REPLY_LOOP=1` only for a deliberately tested run. When it is off, the brief does not claim that replies will be recorded.
+- **Cross-round timeline state is opt-in.** Pass `--timeline` after choosing the state you want. Runtime state lives under ignored `.floor/` by default, never in the tracked seed; override it with `FLOOR_TIMELINE_PATH`.
 - **Live Mail has no inbound.** Ambiguous exposes `list_inbox`, `create_draft_email` and `send_email` but nothing to inject fictional inbound customer mail, so the Inbox watcher has nothing to read against the live workspace. Mitigated by a `[SEED MAIL]` summary in `#ops-team` covering `M-1`, `M-2`, `M-3`, the `M-4` bounce and `M-9`, plus three draft emails. `send_email` was never called. The honest path for Inbox is the mock, and saying so out loud costs nothing.
 
 ---
@@ -175,6 +193,9 @@ Judges are owed the line between the two, so here it is. Prepared before the eve
 - **Read-heavy, write-light.** Notes, drafts and tasks, with a closed allowlist behind them.
 - **Facts and dates, never opinions about people.**
 
-## If the live workspace fights you
+## Live evidence
 
-Run the whole thing on `MockClient` with the terminal as the floor. It still shows the multiplayer merge and the brief, it is fully honest, and the workspace adapter is an hour of work you can name out loud. Working beats wired.
+The final Sonnet 5 round completed against the Ambiguous workspace. Use
+[`LIVE_ROUND_REPORT.md`](LIVE_ROUND_REPORT.md) for exact receipts and
+[`DEMO_NOW.md`](DEMO_NOW.md) for the recording path. `MockClient` remains the
+free offline development and evaluation path; it is not the live-demo fallback.

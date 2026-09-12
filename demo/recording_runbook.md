@@ -2,15 +2,18 @@
 
 One take, one voice, exactly 2:00, entirely inside the Ambiguous workspace. Record at 15:15. Submit by 16:00.
 
-**Where this choreography comes from.** No live round of the current code has been recorded. The only model-backed validation artifact, `MOCK_ROUND_VALIDATE3.txt`, predates the `ASSIGN`, `VERIFIER`, `DONE`, `BLOCKED` protocol and contains none of those labels. Every label, order, and hold in section 1 is derived from a mock round run offline on current main (HEAD `54ef2e6`, heuristic path, `python -m floor.round`). The live floor should show the same headers and the same label order. It will not show the same card counts, and it may not show the Inbox block at all. Section 3 covers each way it can differ.
+**Where this choreography comes from.** Use the final Sonnet 5 round completed
+from 15:22–15:27 EDT (19:22–19:27 UTC), documented in
+`LIVE_ROUND_REPORT.md`. It contains the full protocol and a clean three-item
+brief.
 
-**Three pre-roll blockers.** Clear all three before the warm round. Each one has a section 3 entry if it bites during the take.
+**Pre-roll blocker.** Open the 15:22 EDT round. Confirm it ends with
+`—— Round 2026-09-12 15:22 · done ——` and links brief
+`d9aff913-9c63-48bf-895b-9ccc6021cd04`. Do not rerun it.
 
-1. `ANTHROPIC_API_KEY` loaded. Without it the code silently falls back to heuristic rules and the brief is wrong: rank 1 is not Ember Grill and item 3 is a bare task id. Confirm with the boolean command in section 3, case D. The model when the key is present is `claude-sonnet-4-5`.
-2. `AMBIGUOUS_TOKEN_DESK` exported in the shell that runs the round. `McpClient.as_agent("verifier")` tries `AMBIGUOUS_TOKEN_VERIFIER`, then `AMBIGUOUS_TOKEN_DESK`, and raises `PermissionError` if neither is set. The `--live` entry point reads only `AMBIGUOUS_API_KEY` or `AMBIGUOUS_TOKEN`, so with the default token alone the round dies at the first `VERIFIER` post. Confirm with the boolean command in section 3, case C.
-3. One warm round finished on the live floor, ending with `—— Round … · done ——` in `#agents-floor` and a new brief in `#attention`. Budget note: a round writes about 113 workspace objects, so against a 1,000-action monthly tier you have roughly 9 rounds in total. The warm round plus at most two retries is the allowance for today.
-
-Browser setup: one window, two tabs, `#agents-floor` first and `#attention` second. Nothing else open. Zoom the browser until one `FINDING` card fills roughly a third of the frame; that zoom is what lets the brief's last two lines fall below the fold in beat 6. Do Not Disturb on. Quit Mail, Slack, and Messages.
+Browser setup: one window, two tabs, `#agents-floor` first and `#attention`
+second. Nothing else open. Set zoom so one full card is readable. Do Not
+Disturb on. Quit Mail, Slack, and Messages.
 
 ---
 
@@ -25,10 +28,11 @@ Label text below is exactly what the code posts. `<stamp>` is the round's date a
 | Time | Scroll to | Hold | Cursor rests on |
 |---|---|---|---|
 | 0:00–0:03 | `—— Round <stamp> · pass 1 ——` | 3 s | the second line, `Watchers posting FINDING cards here.` |
-| 0:03–0:10 | the first `FINDING · Ops · …` card, then drift down through the Ops block | 7 s total, 2 s on the first card | the `ref:` line of the first Ops card; in the mock that is `ref: D-101`, account `Copper Kettle Group` |
-| 0:10–0:17 | the first `FINDING · Follow-up · …` card, then drift to the last Follow-up card | 7 s total, 2 s on the first card | the `ref:` line of the first Follow-up card; in the mock that is `ref: T-1`, and its `what:` line reads `Task overdue 19 days: Send Copper Kettle revised quote (3-location discount)` |
+| 0:03–0:10 | one `FINDING · Ops · …` card | 7 s | its `ref:` line |
+| 0:10–0:17 | one `FINDING · Follow-up · …` card | 7 s | its `ref:` line |
 
-If a `FINDING · Inbox · …` block sits between Ops and Follow-up, use the split in section 3, case B2. In the mock the blocks are 8 Ops, 6 Inbox, 6 Follow-up. Live, expect Ops and Follow-up only. The words do not change either way; the beat 1 Say cell names the three lanes, which are code, and says nothing about how many cards each lane posted.
+The observed round has seven Ops and eight Follow-up findings. Inbox is empty
+and correctly posts none.
 
 ### Beat 2 · 0:17–0:33 · Pass two · `#agents-floor`
 
@@ -37,7 +41,9 @@ If a `FINDING · Inbox · …` block sits between Ops and Follow-up, use the spl
 | 0:17–0:20 | `—— Round <stamp> · pass 2 · Desk merge ——` | 3 s | the second line, `Merged N findings → M problem(s).` |
 | 0:20–0:33 | `PROBLEM · <account> · rank 1` and `PROBLEM · <account> · rank 2`, both cards in frame | 13 s | the `merges:` line of the rank 1 card for 7 s, then the `merges:` line of the rank 2 card for 6 s |
 
-With the key loaded, rank 1 should be `PROBLEM · Ember Grill · rank 1`. If it is anything else, stop and go to section 3, case D. Do not read the rank number aloud. Do not rest the cursor on the `human:` line or the `actions:` line. The `merges:` ids are the receipt for "trace the merge back to the cards above it"; they are the same ids as the `ref:` lines in beat 1.
+The observed rank 1 card is `PROBLEM · Ember Grill · rank 1`, followed by
+Copper Kettle Group. Do not rest the cursor on the `human:` or `actions:` line.
+The `merges:` ids trace back to the cards in beat 1.
 
 ### Beat 3 · 0:33–0:52 · Refusal theater · `#agents-floor`
 
@@ -57,15 +63,17 @@ Word cue: use this beat's slack as one pause after "Send an email to a customer.
 
 ### Beat 4 · 0:52–1:10 · One approved chain · `#agents-floor`
 
-Use the first chain after refusal theater that ends in `DONE`. In the mock it is Ops on Pine & Salt.
+Use the first Follow-up task chain after refusal theater that ends in `DONE`.
 
 | Time | Scroll to | Hold | Cursor rests on |
 |---|---|---|---|
-| 0:52–0:56 | `ASSIGN · Ops → add note` | 4 s | the `rule:` line, `wait for VERIFIER · approved before write` |
-| 0:56–1:02 | `VERIFIER · approved` | 6 s | the `reason:` line, `allowlist + safety checks passed` |
-| 1:02–1:10 | `DONE · Ops · add_note` | 8 s | the `result:` line, `note on deal <ref>` |
+| 0:52–0:56 | `ASSIGN · Follow-up → assign task` | 4 s | the `rule:` line, `wait for VERIFIER · approved before write` |
+| 0:56–1:02 | scroll to `VERIFIER · approved` | 6 s | the `reason:` line, `allowlist + safety checks passed` |
+| 1:02–1:10 | scroll to `DONE · Follow-up · assign_task` | 8 s | the `result:` line |
 
-Keep all three posts in frame together for the whole beat. If the first chain after refusal theater ends in `BLOCKED`, skip forward to the first chain that ends in `DONE`. If no chain ends in `DONE`, use section 3, case A2.
+Show all three posts in order; they do not need to fit in one frame. If the
+first chain after refusal theater ends in `BLOCKED`, skip forward to the first
+chain that ends in `DONE`.
 
 ### Beat 5 · 1:10–1:27 · Remaining chains to work done · `#agents-floor`
 
@@ -80,23 +88,23 @@ The chains are not meant to be read; the repeating labels are the point. Set the
 
 | Time | Scroll to | Hold | Cursor rests on |
 |---|---|---|---|
-| 1:27–1:28 | click the `#attention` tab | 1 s | nothing; hands off the mouse during the switch |
-| 1:28–1:31 | `Attention brief · <date>` at the top of the frame | 3 s | the second line, `3 item(s) need a person · everything else handled on the floor` |
-| 1:31–1:36 | `1. @theo — Ember Grill` | 5 s | the item's first line |
-| 1:36–1:41 | `2. @dana — Pine & Salt ($120,000)` | 5 s | the item's first line |
-| 1:41–1:46 | `3. @priya — Copper Kettle Group ($84,000)` | 5 s | the item's first line |
-| 1:46–1:50 | no scroll | 4 s | item 3's `Evidence:` line, with `Handled without you: …` as the last visible line of the frame |
+| 1:27–1:28 | click the `#attention` tab | 1 s | nothing |
+| 1:28–1:31 | `Attention brief · <date>` | 3 s | `3 item(s) need a person` |
+| 1:31–1:46 | move through the three owner and evidence lines | 15 s | Theo, Dana, then Priya |
+| 1:46–1:50 | `Handled without you: …` | 4 s | that line |
 
-Every item prints an owner-and-account line and a cause line, then `Evidence:` when the merge carries refs and `Ready:` when the problem carries actions. A problem backfilled by `_ensure_golden_problems` has no actions and no `Ready:` line. If item 3 has no `Evidence:` line, rest on its cause line for 1:46–1:50 instead. Never rest the cursor on a `Ready:` line. It prints the planned actions, not the executed ones, so live it can read `draft reply` for a draft that was BLOCKED. Two lines below `Handled without you:` the brief prints `Reply in this thread and I'll record it.` Keep that line below the bottom of the frame. If the zoom set in pre-roll cannot push it below the fold, keep the cursor at least one item above it and never read it. If a judge reads it off the recording, the reply handler is designed and implemented behind a flag and not demonstrated; `FLOOR_REPLY_LOOP` is off by default.
+The clean brief has three items: Ember Grill, Pine & Salt, and Copper Kettle
+Group. It has no `Ready:` line and no reply promise.
 
-The beat 6 Say cell names no account, no owner, and no dollar amount. Do not add them. The cursor on the owner lines is the receipt for "Each item names an owner".
+The beat 6 Say cell names the three visible owner/account pairs. Do not add
+dollar amounts.
 
 ### Beat 7 · 1:50–2:00 · Tagline · `#agents-floor`
 
 | Time | Scroll to | Hold | Cursor rests on |
 |---|---|---|---|
 | 1:50–1:51 | click the `#agents-floor` tab | 1 s | nothing |
-| 1:51–2:00 | the last chain that ends in `DONE` immediately above `—— Work done this round ——`, with `ASSIGN`, `VERIFIER · approved`, `DONE` all in frame | 9 s | the `VERIFIER · approved` label, cursor still |
+| 1:51–2:00 | a `VERIFIER · approved` immediately followed by its `DONE`, near `—— Work done this round ——` | 9 s | the `VERIFIER · approved` label, cursor still |
 
 The tab keeps the beat 5 scroll position, so this chain is one short upward scroll from the `—— Work done this round ——` header. Do not go back to the beat 4 chain; it is many chains higher. In the mock the last chain is Follow-up: `ASSIGN · Follow-up → create task`, `VERIFIER · approved`, `DONE · Follow-up · assign_task`. Live it may be Ops or Follow-up. Any chain ending in `DONE` is a valid receipt for the tagline. Stop scrolling before you speak. Say the line, stop, let the recording run out. Add nothing after it.
 
@@ -104,66 +112,75 @@ The tab keeps the beat 5 scroll position, so this chain is one short upward scro
 
 ## 2. Voice-over script
 
-Rate: 2.5 words per second. Cap: 300 words. Comfortable: 240 to 270. This script is 257 words, 102.8 seconds spoken inside 120 seconds, with 17.2 seconds of slack for scrolling and tab switches.
+Rate: 2.5 words per second. Cap: 300 words. This script is 240 words,
+96 seconds spoken inside 120 seconds, with 24 seconds of slack for scrolling
+and tab switches.
 
 **Source of truth.** The Say cells below are copied word for word from the seven rows of `demo/script.md` in the working tree at reconciliation time. If Part A's review changes that file, change this section to match and re-run the counts. One label caution: `demo/script.md` writes the blocked draft post as `BLOCKED · Inbox · draft reply`; the code prints `BLOCKED · Inbox · draft`, because `execute_actions` passes the action type `draft` to `_post_blocked`. The `ASSIGN` label is `ASSIGN · Inbox → draft reply`. This runbook uses the labels the code prints.
 
 | Beat | Range | Length | Words | Spoken | Slack |
 |---|---|---|---|---|---|
-| 1 · Pass one | 0:00–0:17 | 17 s | 38 | 15.2 s | 1.8 s |
-| 2 · Pass two | 0:17–0:33 | 16 s | 35 | 14.0 s | 2.0 s |
-| 3 · Refusal theater | 0:33–0:52 | 19 s | 43 | 17.2 s | 1.8 s |
-| 4 · One approved chain | 0:52–1:10 | 18 s | 37 | 14.8 s | 3.2 s |
-| 5 · Remaining chains to work done | 1:10–1:27 | 17 s | 38 | 15.2 s | 1.8 s |
-| 6 · The brief | 1:27–1:50 | 23 s | 51 | 20.4 s | 2.6 s |
-| 7 · Tagline | 1:50–2:00 | 10 s | 15 | 6.0 s | 4.0 s |
-| **Total** | **0:00–2:00** | **120 s** | **257** | **102.8 s** | **17.2 s** |
+| 1 · Pass one | 0:00–0:17 | 17 s | 41 | 16.4 s | 0.6 s |
+| 2 · Pass two | 0:17–0:33 | 16 s | 36 | 14.4 s | 1.6 s |
+| 3 · Refusal theater | 0:33–0:52 | 19 s | 41 | 16.4 s | 2.6 s |
+| 4 · One approved chain | 0:52–1:10 | 18 s | 35 | 14.0 s | 4.0 s |
+| 5 · Remaining chains to work done | 1:10–1:27 | 17 s | 35 | 14.0 s | 3.0 s |
+| 6 · The brief | 1:27–1:50 | 23 s | 41 | 16.4 s | 6.6 s |
+| 7 · Tagline | 1:50–2:00 | 10 s | 11 | 4.4 s | 5.6 s |
+| **Total** | **0:00–2:00** | **120 s** | **240** | **96.0 s** | **24.0 s** |
 
-Beat 6 is the one to rehearse twice. It is the longest cell, the cursor has to land on three item lines, and the last four sentences are the ones a judge will test.
+Beat 6 is the one to rehearse twice. Move cleanly through all three owner lines
+and their evidence.
 
-### Beat 1 · 0:00–0:17 · 38 words
+### Beat 1 · 0:00–0:17 · 41 words
 
-> This is Brightline Payroll. One stuck customer leaves signals in different tools. Three watchers, each with one lane: Ops reads the CRM, Inbox reads mail, Follow-up reads tasks and calendar. The cards on screen are facts and ids.
+> A customer problem rarely lives in one place. The email is in one app, the overdue task in another, and the promise is buried in chat. The Floor gives each source a watcher and brings the evidence together here in Ambiguous.
 
-The three lanes are code in `floor/router.py` and are true whether or not Inbox posted a card. Do not add that Inbox posted anything unless a `FINDING · Inbox` card is on screen.
+The opener leads with the human problem and explains why Ambiguous is the
+shared surface. The three lanes remain enforced in `floor/router.py`.
 
-### Beat 2 · 0:17–0:33 · 35 words
+### Beat 2 · 0:17–0:33 · 36 words
 
-> Pass two. The Desk reads the whole floor and merges same-account cards into one ranked problem. Each problem card carries its evidence ids, so you can trace the merge back to the cards above it.
+> Then the Desk connects the dots. Instead of giving the team five separate alerts, it merges evidence about the same customer into one ranked problem. The original IDs stay attached, so anyone can check the reasoning.
 
-### Beat 3 · 0:33–0:52 · 43 words
+### Beat 3 · 0:33–0:52 · 41 words
 
-> Before any worker acts, the Desk posts two deliberately unsafe asks. Send an email to a customer. Move a deal's stage. The verifier gate refuses both, and both end BLOCKED. These are safety tests, not customer work. The round runs them every time.
+> Before anything happens, every action crosses a hard safety gate. Here I deliberately ask it to email a customer and change a deal stage. Both requests are refused and logged as blocked. The model cannot talk its way around the rule.
 
-"The round runs them every time" is true in code: `execute_actions` calls `_refusal_theater` unconditionally before any productive chain. A single-round take shows it once. See section 5, row 11.
+This block appears only because the recording command includes `--safety-demo`.
 
-### Beat 4 · 0:52–1:10 · 37 words
+### Beat 4 · 0:52–1:10 · 35 words
 
-> Now the real work. Every assignment is one bounded step. The Desk posts ASSIGN. The gate posts its verdict: approved, refused, or needs rewrite. The worker posts DONE or BLOCKED. Nothing writes until the floor shows approved.
+> Safe work follows the same path. The Desk assigns one small action, the gate approves it, and the worker reports what happened. If execution fails, it says blocked instead of pretending the job is done.
 
-"The gate posts its verdict" is the honest wording. There is no Verifier seat and no Closer seat in the workspace. The verdict posts as Desk when `AMBIGUOUS_TOKEN_DESK` is set. Do not say "the Verifier agent". The `needs_rewrite` verdict never posts in this round; see section 5, row 14.
+"The gate posts its verdict" is the honest wording. There is no Verifier seat
+and no Closer seat in the workspace. Do not say "the Verifier agent." The
+recording shows approved and refused, so those are the only verdicts named.
 
-### Beat 5 · 1:10–1:27 · 38 words
+### Beat 5 · 1:10–1:27 · 35 words
 
-> Every step is on the floor as a post: the ask, the verdict, the receipt. Anyone can read the audit trail without a terminal. A BLOCKED receipt is not hidden. It means the worker stopped instead of guessing.
+> This channel is the audit trail. You can see the request, the decision, and the receipt in order. The agents handle routine follow-up here, while only decisions that genuinely need a person move to attention.
 
 This cell claims nothing about what got done, so it stands unchanged under section 3, case A2. The receipt for "A BLOCKED receipt is not hidden" is any `BLOCKED · …` post that has been in frame in the take: the two refusal-theater posts in beat 3, and live, any `BLOCKED · Inbox · draft` that passes through in this beat.
 
-### Beat 6 · 1:27–1:50 · 51 words
+### Beat 6 · 1:27–1:50 · 41 words
 
-> Humans get one brief in attention, capped at three items in code. Each item names an owner and the evidence ids behind it. Everything else stayed on the floor, handled or blocked. Nothing was sent to a customer. No stage changed. No calendar was touched. The client cannot do those things.
+> And this is what the human sees: not another dashboard, just today's three decisions. Theo handles Ember Grill's filing risk, Dana finds Pine and Salt's new contact, and Priya closes the loop on Copper Kettle's quote. Every item carries its evidence.
 
-The cell does not name Ember Grill, Theo, or a dollar amount, and it does not say the order is derived. The pinned ranking is still there: `_stabilize_brief` forces Ember Grill, Pine & Salt, and Copper Kettle into ranks 1 to 3 with owners theo, dana, and priya. The findings and the merge are derived; the priority order is a hand-written prior. If a judge asks about the order, say that. The receipts for the last four sentences are earlier in the take and in code; see section 5, rows 23 to 26, and decide before submitting whether "The client cannot do those things." stays.
+The cell names exactly what is on screen. Evidence and safety receipts appeared
+earlier in the take.
 
-### Beat 7 · 1:50–2:00 · 15 words
+### Beat 7 · 1:50–2:00 · 11 words
 
-> Attention is a team sport. Most of the team does not have to be human.
+> The goal isn't more notifications. It's giving people back their attention.
 
 ---
 
-## 3. Contingency takes
+## 3. Archived rerun contingencies — do not use for this recording
 
-Each case names the symptom, the alternate sentence if the words change, and where the cursor goes. Word counts are measured at 2.5 words per second.
+The cases below exist only to diagnose a future deliberate live run. They are
+not recording instructions. If the existing 17:13 round cannot be found, use
+the message ids in `LIVE_ROUND_REPORT.md`; do not start a replacement round.
 
 ### Case A · BLOCKED where DONE was expected
 
@@ -194,16 +211,18 @@ Beat 7 has no `DONE` chain to return to. Use the last chain above `—— Work d
 **What to do in the next 5 minutes.**
 
 1. Minute 0. Stop the recording. Do not scroll the dead round; it stays above the next round's pass 1 header and out of frame.
-2. Minute 1. Put the Desk agent's token into the environment that runs the round, either as `AMBIGUOUS_TOKEN_DESK=…` on one line in `/Users/raihanahmed/Desktop/the-floor/.env`, which `round.py` loads at import, or as an export in the same shell. The token comes from the Ambiguous workspace where per-agent tokens are issued. Never paste it on camera and never print it.
+2. Minute 1. Put the Desk agent's token into the repo-root `.env` as `AMBIGUOUS_TOKEN_DESK=…`, or export it in the same shell. The token comes from the Ambiguous workspace where per-agent tokens are issued. Never paste it on camera and never print it.
 3. Minute 2. Confirm it loads without printing it:
 
    ```bash
-   cd /Users/raihanahmed/Desktop/the-floor && .venv/bin/python -c "import os,dotenv; dotenv.load_dotenv('.env'); print('desk or verifier token:', bool(os.environ.get('AMBIGUOUS_TOKEN_DESK') or os.environ.get('AMBIGUOUS_TOKEN_VERIFIER')))"
+   cd /path/to/the-floor && .venv/bin/python -c "import os,dotenv; dotenv.load_dotenv('.env'); print('desk or verifier token:', bool(os.environ.get('AMBIGUOUS_TOKEN_DESK') or os.environ.get('AMBIGUOUS_TOKEN_VERIFIER')))"
    ```
 
    You want `desk or verifier token: True`.
-4. Minute 3. Run one fresh live round from that shell. Wait for `—— Round <stamp> · done ——` on the floor and a new brief in `#attention`.
-5. Minute 4. Scroll `#agents-floor` so the new round's `—— Round <stamp> · pass 1 ——` is the top of frame. Confirm you can see `VERIFIER · refused` twice and at least one `DONE`. Confirm rank 1 of the new brief is Ember Grill. Start the take again from beat 1.
+4. For a future engineering validation only, run one deliberate live round and
+   wait for its done marker. Do not do this for the current recording.
+5. Validate that future round separately; keep the recording on the proven
+   17:13 round.
 
 This retry spends one of the two retries in the round budget. If the second attempt also stops at the first `VERIFIER` post, the token is not reaching the process; check that the shell running the round is the shell where you exported it, and that `.env` is at the repo root and not inside `floor/`.
 
@@ -213,17 +232,18 @@ This retry spends one of the two retries in the round budget. If the second atte
 
 **What to do.**
 
-1. Create or fix `/Users/raihanahmed/Desktop/the-floor/.env` with one line, `ANTHROPIC_API_KEY=…`. Do not `cat` it, do not `echo` the variable, and do not open it in an editor on camera.
+1. Create or fix the repo-root `.env` with `ANTHROPIC_API_KEY=…`. Do not `cat` it, echo the variable, or open it on camera.
 2. Confirm it loads without printing it:
 
    ```bash
-   cd /Users/raihanahmed/Desktop/the-floor && .venv/bin/python -c "import os,dotenv; dotenv.load_dotenv('.env'); print('key loaded:', bool(os.environ.get('ANTHROPIC_API_KEY')))"
+   cd /path/to/the-floor && .venv/bin/python -c "import os,dotenv; dotenv.load_dotenv('.env'); print('key loaded:', bool(os.environ.get('ANTHROPIC_API_KEY')))"
    ```
 
    You want `key loaded: True`.
-3. Run one fresh live round. Check the new brief. Item 1 must read `1. @theo — Ember Grill`.
+3. For a future engineering validation only, run one deliberate live round.
+   Do not do this for the current recording.
 
-**If the key is loaded and rank 1 is still not Ember Grill.** The stabiliser promotes to rank 1 only a problem whose account or evidence text contains "Ember" (`_stabilize_brief`, `floor/round.py`). A problem that only mentions T-4 or withholding gets owner theo but sorts after Pine & Salt and Copper Kettle and is cut by the three-item cap, which is what happens to `PROBLEM · T-4` in the mock. The backfill (`_ensure_golden_problems`) synthesises an Ember problem only when a pass 1 card mentions Ember, T-4, withholding, or penalty and no problem already mentions Ember, T-4, or withholding. If neither happened live, do not spend a second retry on it. The beat 6 Say cell names no account, owner, or dollar amount, so the words do not change. Record beat 6 with the section 1 choreography as written, resting on whichever three items the round produced, and keep the cursor off every `Ready:` line.
+**If the key is loaded and rank 1 is still not Ember Grill.** The stabiliser promotes to rank 1 only a problem whose account or evidence text contains "Ember" (`_stabilize_brief`, `floor/round.py`). A problem that only mentions T-4 or withholding gets owner theo but sorts after Pine & Salt and Copper Kettle and is cut by the three-item cap, which is what happens to `PROBLEM · T-4` in the mock. The backfill (`_ensure_golden_problems`) synthesises an Ember problem only when a pass 1 card mentions Ember, T-4, withholding, or penalty and no problem already mentions Ember, T-4, or withholding. If neither happened live, do not spend a second retry on it. The beat 6 words name no account, owner, or dollar amount, so they do not change.
 
 ### Case E · The Ops FINDING block is empty, or a PROBLEM card is titled by a UUID
 
@@ -233,7 +253,8 @@ This retry spends one of the two retries in the round budget. If the second atte
 
 If a judge asks why Ops is quiet: "The live CRM does not record when a deal entered its stage, and Ops keys on that. The mock has it, the live seed cannot. That is a client mapping to fix, not a watcher failure."
 
-**Authorship.** With only the Desk token set, every post in the round is signed by the Desk seat. If the take is meant to show watcher seats, `AMBIGUOUS_TOKEN_OPS`, `AMBIGUOUS_TOKEN_INBOX` and `AMBIGUOUS_TOKEN_FOLLOWUP` must be set before the warm round. Otherwise do not say "each watcher posts its own card"; say "each lane posts its own card".
+**Authorship.** The existing round visibly includes Desk, Follow-up, Inbox, and
+Ops authorship. Do not infer token configuration beyond what appears on screen.
 
 ---
 
@@ -247,9 +268,8 @@ None of these appears in the take, in a cutaway, or in a still. Each one either 
 | Source code, any file | The take is a product recording. Source belongs in the judge Q&A, not on screen. |
 | Mock transcript, including `MOCK_ROUND_VALIDATE3.txt` and any `run.txt` | No mock output is evidence of the live protocol, and the only committed validation predates the protocol entirely. |
 | Mail drafts, the Mail tab, any draft object | The three drafts in the live Mail were placed during seeding and are not agent output. Live agent drafts BLOCK on the empty inbox. |
-| The `Ready:` line under any brief item | It prints planned actions, not executed ones. Live it can read `draft reply` for a draft that never existed. |
-| The line `Reply in this thread and I'll record it.` | Appended unconditionally. The handler behind it is implemented behind `FLOOR_REPLY_LOOP=1` and is off. Not read aloud, not in frame, not pointed at. |
-| Timeline, `floor/timeline.py`, `seed/timeline.json`, any `[Timeline] Skipped re-escalation` line | Merged to GitHub main in PR #4 after the recording checkout; not in the code being recorded. On the merged code the seeded store zeroes the brief. Do not pull before the take. Not demoed. |
+| Reply handling | Implemented behind `FLOOR_REPLY_LOOP=1`, off for this recording. The brief makes no reply promise while off. |
+| Timeline or any `[Timeline] Skipped re-escalation` line | Optional behind `--timeline`, off for this recording. Runtime state is outside tracked seed data. |
 | Any file under `prompts/` | `prompts/desk.md` names the expected merges and the required brief order. On screen it turns the derived merge into a script. |
 | Any dashboard, board, or console outside the Ambiguous workspace | Only Ambiguous channels are the demo surface. |
 | The `human:` line on a `PROBLEM` card and any `• task → @dana` bullet | Task owner routing defaults every task to dana. True, on the floor, and not a strength. |
@@ -258,40 +278,21 @@ None of these appears in the take, in a cutaway, or in a still. Each one either 
 
 ## 5. Post-record checklist
 
-Fill the timestamp column from the finished recording. Every spoken claim needs one receipt on screen at the moment it is said, or, where the row says so, earlier in the same take. A claim with no receipt is cut from the voice-over before submission, not defended in Q&A. Three rows below have no on-screen receipt; each one names the cut.
+Fill the timestamp column from the finished recording. Each story beat should
+have the named receipt visible on screen.
 
 | # | Spoken claim | Channel | Label to find it under | Timestamp |
 |---|---|---|---|---|
-| 1 | This is Brightline Payroll. One stuck customer leaves signals in different tools | `#agents-floor` | the same account name under a `FINDING · Ops` card and a `FINDING · Follow-up` card; in the mock, Copper Kettle Group at `ref: D-101` and in the `what:` line of `ref: T-1` | __:__ |
-| 2 | Three watchers, each with one lane | `#agents-floor` | `FINDING · Ops · …` and `FINDING · Follow-up · …` blocks with distinct labels; the lanes themselves are code in `floor/router.py` | __:__ |
-| 3 | Ops reads the CRM | `#agents-floor` | every `FINDING · Ops` card's `ref:` is a deal ref | __:__ |
-| 4 | Inbox reads mail | `#agents-floor` | a `FINDING · Inbox` card's `ref:` is a mail ref if one is in frame; with no Inbox card the claim is about the lane, which is code, and posts nothing to read | __:__ |
-| 5 | Follow-up reads tasks and calendar | `#agents-floor` | every `FINDING · Follow-up` card's `ref:` is a task or event ref | __:__ |
-| 6 | The cards on screen are facts and ids | `#agents-floor` | the `ref:` and `what:` lines of the cards under the cursor | __:__ |
-| 7 | Pass two. The Desk reads the whole floor and merges same-account cards into one ranked problem | `#agents-floor` | `—— Round <stamp> · pass 2 · Desk merge ——`, line `Merged N findings → M problem(s).`, then `PROBLEM · <account> · rank 1` | __:__ |
-| 8 | Each problem card carries its evidence ids, so you can trace the merge back to the cards above it | `#agents-floor` | the `merges:` line on the rank 1 and rank 2 cards; the ids match `ref:` lines from beat 1 | __:__ |
-| 9 | Before any worker acts, the Desk posts two deliberately unsafe asks | `#agents-floor` | `—— Refusal theater · unsafe asks (must not execute) ——`, placed before the first approved chain; `ASSIGN · Inbox → send email to customer` and `ASSIGN · Ops → set_field` | __:__ |
-| 10 | Send an email to a customer. Move a deal's stage. The verifier gate refuses both, and both end BLOCKED | `#agents-floor` | `VERIFIER · refused` with reason `customer send is forbidden; draft only`, then `BLOCKED · Inbox · send email to customer`; `VERIFIER · refused` with reason `field 'stage' is blocked (safety)`, then `BLOCKED · Ops · set_field` | __:__ |
-| 11 | These are safety tests, not customer work. The round runs them every time | `#agents-floor` | header line `Desk received two out-of-policy requests. Verifier must refuse both.`; "every time" has no on-screen receipt in a single-round take: it is the unconditional `_refusal_theater` call at the top of `execute_actions`, answered in Q&A, or cut that sentence from the Say cell before submitting | __:__ |
-| 12 | Every assignment is one bounded step | `#agents-floor` | `ASSIGN · Ops → add note` carries one action, one account, one ref | __:__ |
-| 13 | The Desk posts ASSIGN | `#agents-floor` | `ASSIGN · Ops → add note`, line `rule: wait for VERIFIER · approved before write` | __:__ |
-| 14 | The gate posts its verdict: approved, refused, or needs rewrite | `#agents-floor` | `VERIFIER · approved`, reason `allowlist + safety checks passed`; `refused` receipts are row 10; `needs_rewrite` has no on-screen receipt in this round and is answered from `_verify_action` in Q&A, or cut those two words from the Say cell before submitting | __:__ |
-| 15 | The worker posts DONE or BLOCKED | `#agents-floor` | `DONE · Ops · add_note`, line `result: note on deal <ref>`; `BLOCKED` receipts are row 10 | __:__ |
-| 16 | Nothing writes until the floor shows approved | `#agents-floor` | `VERIFIER · approved` sits above `DONE` in the same frame; the `rule:` line on `ASSIGN` | __:__ |
-| 17 | Every step is on the floor as a post: the ask, the verdict, the receipt | `#agents-floor` | the repeating `ASSIGN`, `VERIFIER`, `DONE` labels during the beat 5 scroll | __:__ |
-| 18 | Anyone can read the audit trail without a terminal | `#agents-floor` | the frame is an Ambiguous channel and nothing else is in the take (section 4) | __:__ |
-| 19 | A BLOCKED receipt is not hidden. It means the worker stopped instead of guessing | `#agents-floor` | any `BLOCKED · …` post with its `reason:` line that has been in frame: the two refusal-theater posts from row 10, and live, any `BLOCKED · Inbox · draft` that passed through in beat 5 | __:__ |
-| 20 | Humans get one brief in attention, capped at three items in code | `#attention` | `Attention brief · <date>`, line `3 item(s) need a person · everything else handled on the floor` | __:__ |
-| 21 | Each item names an owner and the evidence ids behind it | `#attention` | `1. @… — …`, `2. @… — …`, `3. @… — …` and their `Evidence:` lines; if an item has no `Evidence:` line, note it here | __:__ |
-| 22 | Everything else stayed on the floor, handled or blocked | `#attention` | `Handled without you: …` as the last visible line | __:__ |
-| 23 | Nothing was sent to a customer | earlier in the take | no `send` bullet under `—— Work done this round ——` in beat 5; `BLOCKED · Inbox · send email to customer` from row 10; nothing in `#attention` shows it | __:__ |
-| 24 | No stage changed | earlier in the take | `BLOCKED · Ops · set_field` from row 10; no `set stage` bullet under `—— Work done this round ——` | __:__ |
-| 25 | No calendar was touched | earlier in the take | no calendar bullet under `—— Work done this round ——`; a `• flagged event · …` bullet is a floor post, not a calendar write | __:__ |
-| 26 | The client cannot do those things | none | no on-screen receipt: `WorkspaceClient` in `floor/client.py` has no send method and no calendar write, and `set_deal_field` raises `PermissionError` for stage; that is code, not a post. Answer it from `floor/client.py` in Q&A, or cut this sentence from the Say cell before submitting | __:__ |
-| 27 | Attention is a team sport. Most of the team does not have to be human | `#agents-floor` | the last `DONE` chain above `—— Work done this round ——`, cursor on `VERIFIER · approved` | __:__ |
+| 1 | Evidence starts scattered and comes together in Ambiguous | `#agents-floor` | one Ops and one Follow-up FINDING card | __:__ |
+| 2 | The Desk merges alerts while retaining original IDs | `#agents-floor` | pass 2 header, PROBLEM cards, and `merges:` lines | __:__ |
+| 3 | The hard gate refuses customer send and stage change | `#agents-floor` | both `VERIFIER · refused` and `BLOCKED` chains | __:__ |
+| 4 | Safe work reports the real outcome | `#agents-floor` | one complete `ASSIGN → approved → DONE` chain | __:__ |
+| 5 | The channel is an ordered audit trail | `#agents-floor` | repeating assignment, verdict, and receipt labels | __:__ |
+| 6 | Humans see three decisions with owners and evidence | `#attention` | Ember Grill, Pine & Salt, and Copper Kettle Group | __:__ |
+| 7 | The goal is fewer notifications and protected attention | `#agents-floor` | final approved/DONE chain | __:__ |
 
-Three checks after the table is full.
+Two checks after the table is full.
 
-1. Rows 11, 14, and 26 each carry a spoken claim with no on-screen receipt. Before submitting, decide each one the same way: either the sentence stays and the Q&A answer named in the row is ready, or the sentence is cut from `demo/script.md` and re-recorded. Write the decision here: __ / __ / __
-2. Search the recording for the `Ready:` lines and for `Reply in this thread and I'll record it.` If either is legible in any frame, note the timestamp here and re-record beat 6 with more zoom: __:__
-3. Search the recording for the word "draft" in the audio; it should not be there. Then search the frames for `DONE · Inbox · draft` and for any `BLOCKED · Inbox · draft` that the cursor rested on. A `BLOCKED · Inbox · draft` that only passed through during the beat 5 scroll is expected and is a receipt for row 19. A `DONE · Inbox · draft` should not exist live, because the inbox is empty. If either flagged case is there, decide whether to cut the beat before submitting, because it will get the question in section 3, case A1.
+1. Confirm every completion claim has a visible `DONE` receipt.
+2. A `BLOCKED · Inbox · draft` may pass through the frame, but do not stop on
+   it. A `DONE · Inbox · draft` should not exist because the live inbox is empty.

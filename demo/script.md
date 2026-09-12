@@ -6,46 +6,20 @@ Every claim in this file agrees with [claim_sheet.md](claim_sheet.md). If you ar
 
 ## What the recording proves
 
-The Tier 1 protocol is visible as posts in `#agents-floor`: Desk `ASSIGN`, then `VERIFIER · approved | refused | needs_rewrite`, then worker `DONE | BLOCKED`, then one brief in `#attention` with at most three items. The Verifier is a code gate in `floor/round.py` `_verify_action`. Its verdict posts as Desk once `AMBIGUOUS_TOKEN_DESK` is set, which is pre-roll item 2. Without that token the round fails closed. There is no Verifier seat and no Closer seat in the workspace. Say that plainly if asked.
+The Tier 1 protocol is visible as posts in `#agents-floor`: Desk `ASSIGN`, then
+`VERIFIER · approved | refused`, then worker `DONE | BLOCKED`, followed by a
+clean three-item brief in `#attention`. The Verifier is a code gate whose
+verdict appears from Desk. There is no Verifier or Closer seat.
 
 ## Pre-roll checklist, in this order
 
-Work top to bottom. Items 1 and 2 are blockers. Do not start recording with either unresolved.
+Do not run another round. Open `#agents-floor` and find:
 
-### 1. ANTHROPIC_API_KEY loaded
+`—— Round 2026-09-12 15:22 · pass 1 ——`
 
-There is no `.env` on this machine as of this writing. Create `/Users/raihanahmed/Desktop/the-floor/.env` with `ANTHROPIC_API_KEY=` and your key, then confirm it loads the same way `floor/round.py` loads it:
+Confirm these labels below it:
 
-```bash
-cd /Users/raihanahmed/Desktop/the-floor && .venv/bin/python -c "import os,dotenv; dotenv.load_dotenv('.env'); print('key loaded:', bool(os.environ.get('ANTHROPIC_API_KEY')))"
-```
-
-You want `key loaded: True`. Without the key the code silently falls back to heuristic rules and the brief is wrong: Ember Grill for @theo vanishes and item 3 renders as a bare `T-1` assigned to @dana. There is no error. The eval scores that run AMBER. Do not `cat .env` or echo the key while recording.
-
-### 2. AMBIGUOUS_TOKEN_DESK exported
-
-Put `AMBIGUOUS_TOKEN_DESK=` and the Desk agent token in the same `.env`, or export it in the shell that runs the round. Confirm:
-
-```bash
-cd /Users/raihanahmed/Desktop/the-floor && .venv/bin/python -c "import os,dotenv; dotenv.load_dotenv('.env'); print('desk token:', bool(os.environ.get('AMBIGUOUS_TOKEN_DESK')))"
-```
-
-You want `desk token: True`. Without it, `python -m floor.round --live` posts the watcher findings and then raises `PermissionError` at the first VERIFIER post inside refusal theater. The round stops there, the floor is left half posted, and the recording dies. This is by design: `McpClient.as_agent("verifier")` in `floor/client.py` refuses to fall back to the default token. The `--live` entry point only reads `AMBIGUOUS_API_KEY` or `AMBIGUOUS_TOKEN`, so the Desk token must be set separately. "VERIFIER posts as Desk" is only true after this step.
-
-Simulated offline against a live-shaped client: without the token the last thing on the floor is one `ASSIGN · Inbox → send email to customer`, then nothing. The system announces an unsafe request and goes silent. There is no flag to run pass 2 alone, so the recovery is to set the token and re-run the whole round, which posts a second `—— Round … · pass 1 ——` block above the good one. Scroll to the second header for the take.
-
-Authorship: with only the Desk token, every post on the floor, watcher cards included, is signed by the Desk seat. Cards appear under their own seats only if `AMBIGUOUS_TOKEN_OPS`, `AMBIGUOUS_TOKEN_INBOX` and `AMBIGUOUS_TOKEN_FOLLOWUP` are also set. Decide before the warm round which of the two you are showing, and do not say "each watcher posts its own card" unless the seat names are on screen.
-
-### 2b. Do not `git pull` before recording
-
-PR #4 (the account timeline) merged to GitHub `main` after this checkout, at `76be8d5`, and its committed `seed/timeline.json` marks the golden accounts as already waiting on a human. On that code the brief reads `0 item(s) need a person` and every one of Ember Grill, Pine & Salt and Copper Kettle is downgraded to the floor. Verified on an isolated copy of the merged tip. The store also writes back to `seed/timeline.json` on every run, so it compounds. Record from this checkout, `54ef2e6`. If you must pull, that file is the owner's problem to neutralise first, not yours to edit on camera.
-
-### 3. Warm live round before the take, labels confirmed
-
-Run one live round from the shell with both items above in place. Then open `#agents-floor`, find the newest `—— Round … · pass 1 ——` header, and confirm each of these labels is present below it:
-
-- `FINDING · Follow-up`
-- `FINDING · Ops`, if present. The live CRM has no stage-entered date, and on the fallback path every Ops rule needs one, so the Ops block can be empty live. With the model key Claude may still flag from notes and titles. Read what is there; do not assume.
+- 7 `FINDING · Ops` and 8 `FINDING · Follow-up` cards; Inbox is empty
 - `PROBLEM · … · rank 1`. On the fallback path a card whose finding had no account name is titled by its raw deal id, a UUID. If you see one, choose a beat 2 card with an account name.
 - `—— Refusal theater · unsafe asks (must not execute) ——`
 - `ASSIGN · Inbox → send email to customer`, then `VERIFIER · refused`, then `BLOCKED · Inbox · send email to customer`
@@ -53,11 +27,14 @@ Run one live round from the shell with both items above in place. Then open `#ag
 - At least one approved chain. Live-shaped, that is `ASSIGN · Follow-up → assign task`, then `VERIFIER · approved`, then `DONE · Follow-up · assign_task`. An `add_note` chain appears only if an Ops finding did.
 - `—— Work done this round ——`
 
-Then open `#attention` and confirm one post headed `Attention brief` with `item(s) need a person` and three or fewer items, item 1 reading `@theo — Ember Grill`. If item 1 is anything else, go back to item 1 of this checklist.
+Then open `#attention` and find the newest brief, message
+`d9aff913-9c63-48bf-895b-9ccc6021cd04`. It contains Ember Grill, Pine & Salt,
+and Copper Kettle Group, with no stale `Ready:` or reply-promise lines.
 
-The take scrolls through this round. If any label is missing, fix and rerun before recording. Do not record a round you have not read.
+The take scrolls through this existing round. Do not rerun or edit it.
+`LIVE_ROUND_REPORT.md` is the evidence index.
 
-### 4. The honest Inbox expectation
+### The honest Inbox expectation
 
 The live inbox is empty. Ambiguous has no tool to inject inbound customer mail. Expect the `FINDING · Inbox` block to be empty or absent, and expect every `ASSIGN · Inbox → draft reply` chain to end in `BLOCKED · Inbox · draft` with a reason beginning `could not resolve mail id for ref=`, not `DONE · Inbox · draft`. That is fail-closed behaviour and it is fine on camera.
 
@@ -73,15 +50,14 @@ macOS Do Not Disturb on. Quit Mail, Slack and Messages. Phone silent and face do
 
 ## Do not show
 
-- The `Ready:` line in the brief. It prints planned actions, not executed ones. A draft that BLOCKed still reads `Ready: draft reply`. Do not read it aloud and do not point at it (H4).
-- The brief's closing line `Reply in this thread and I'll record it.` as a working feature. It prints every round. The reply handler is implemented behind `FLOOR_REPLY_LOOP`, off by default, not demonstrated. Keep the cursor off it (H5).
+- The reply handler as a working feature. It is off by default and the brief does not print a reply promise while it is off.
 - Any seeded Mail draft as agent output (H3).
 - A terminal.
 - Source code.
 - A mock transcript.
 - The Router as an LLM. It is code in `floor/router.py`.
 - A dedicated Verifier or Closer identity. Neither exists in the workspace.
-- The account timeline. It merged to GitHub `main` in PR #4 after this checkout and is not in the code being recorded. Not run, not demoed (H11).
+- The account timeline. It is opt-in with `--timeline`; leave it off and do not demo it.
 - Any `PROBLEM` card or brief item whose account reads as a UUID. It is a real live id, not a name, and it reads as a bug on camera (H17).
 
 ## Timed shot list
@@ -90,26 +66,26 @@ Speaking rate is 2.5 words per second. Each Say cell fits its slot. Word counts 
 
 | Time | Channel | On screen | Say |
 |---|---|---|---|
-| 0:00–0:17 | `#agents-floor` | The newest `—— Round … · pass 1 ——` header, then slow scroll down through `FINDING · Ops` cards into `FINDING · Follow-up` cards. Rest the cursor on one `ref:` line. If a `FINDING · Inbox` card is there, pass through it; if not, do not pause where it would be. | "This is Brightline Payroll. One stuck customer leaves signals in different tools. Three watchers, each with one lane: Ops reads the CRM, Inbox reads mail, Follow-up reads tasks and calendar. The cards on screen are facts and ids." |
-| 0:17–0:33 | `#agents-floor` | The `—— Round … · pass 2 · Desk merge ——` header and the first two `PROBLEM · … · rank` cards. Rest the cursor on a `merges:` line. | "Pass two. The Desk reads the whole floor and merges same-account cards into one ranked problem. Each problem card carries its evidence ids, so you can trace the merge back to the cards above it." |
-| 0:33–0:52 | `#agents-floor` | The `—— Refusal theater ——` header. Land on `ASSIGN · Inbox → send email to customer`, then `VERIFIER · refused`, then `BLOCKED · Inbox`. Then `ASSIGN · Ops → set_field`, `VERIFIER · refused`, `BLOCKED · Ops`. | "Before any worker acts, the Desk posts two deliberately unsafe asks. Send an email to a customer. Move a deal's stage. The verifier gate refuses both, and both end BLOCKED. These are safety tests, not customer work. The round runs them every time." |
-| 0:52–1:10 | `#agents-floor` | One complete approved chain: `ASSIGN · Ops → add note`, `VERIFIER · approved`, `DONE · Ops · add_note`. Keep all three posts in frame together. | "Now the real work. Every assignment is one bounded step. The Desk posts ASSIGN. The gate posts its verdict: approved, refused, or needs rewrite. The worker posts DONE or BLOCKED. Nothing writes until the floor shows approved." |
-| 1:10–1:27 | `#agents-floor` | Slow scroll through the remaining chains toward `—— Work done this round ——`. If a `BLOCKED · Inbox · draft` post is there, let it pass through frame without stopping. | "Every step is on the floor as a post: the ask, the verdict, the receipt. Anyone can read the audit trail without a terminal. A BLOCKED receipt is not hidden. It means the worker stopped instead of guessing." |
-| 1:27–1:50 | `#attention` | Switch tabs. The one brief. Cursor on `item(s) need a person`, then down the owner names and `Evidence:` lines. Skip every `Ready:` line and stop scrolling above the last line of the post. | "Humans get one brief in attention, capped at three items in code. Each item names an owner and the evidence ids behind it. Everything else stayed on the floor, handled or blocked. Nothing was sent to a customer. No stage changed. No calendar was touched. The client cannot do those things." |
-| 1:50–2:00 | `#agents-floor` | Switch back. One complete chain `ASSIGN`, `VERIFIER · approved`, `DONE` filling the frame. Stop scrolling before you speak. Let the recording run out after the line. | "Attention is a team sport. Most of the team does not have to be human." |
+| 0:00–0:17 | `#agents-floor` | The `—— Round 2026-09-12 15:22 · pass 1 ——` header, then move through one `FINDING · Ops` and one `FINDING · Follow-up` card. Rest on a `ref:` line. | "A customer problem rarely lives in one place. The email is in one app, the overdue task in another, and the promise is buried in chat. The Floor gives each source a watcher and brings the evidence together here in Ambiguous." |
+| 0:17–0:33 | `#agents-floor` | The `—— Round … · pass 2 · Desk merge ——` header and the first two `PROBLEM · … · rank` cards. Rest the cursor on a `merges:` line. | "Then the Desk connects the dots. Instead of giving the team five separate alerts, it merges evidence about the same customer into one ranked problem. The original IDs stay attached, so anyone can check the reasoning." |
+| 0:33–0:52 | `#agents-floor` | The `—— Refusal theater ——` header. Land on `ASSIGN · Inbox → send email to customer`, then `VERIFIER · refused`, then `BLOCKED · Inbox`. Then `ASSIGN · Ops → set_field`, `VERIFIER · refused`, `BLOCKED · Ops`. | "Before anything happens, every action crosses a hard safety gate. Here I deliberately ask it to email a customer and change a deal stage. Both requests are refused and logged as blocked. The model cannot talk its way around the rule." |
+| 0:52–1:10 | `#agents-floor` | Scroll through one complete approved task chain in order: `ASSIGN · Follow-up → assign task`, `VERIFIER · approved`, `DONE · Follow-up · assign_task`. Pause briefly on each label; they need not fit together. | "Safe work follows the same path. The Desk assigns one small action, the gate approves it, and the worker reports what happened. If execution fails, it says blocked instead of pretending the job is done." |
+| 1:10–1:27 | `#agents-floor` | Slow scroll through the remaining chains toward `—— Work done this round ——`. If a `BLOCKED · Inbox · draft` post is there, let it pass through frame without stopping. | "This channel is the audit trail. You can see the request, the decision, and the receipt in order. The agents handle routine follow-up here, while only decisions that genuinely need a person move to attention." |
+| 1:27–1:50 | `#attention` | Show the newest clean brief. Move through the three owner lines and their evidence, then stop on `Handled without you`. | "And this is what the human sees: not another dashboard, just today's three decisions. Theo handles Ember Grill's filing risk, Dana finds Pine and Salt's new contact, and Priya closes the loop on Copper Kettle's quote. Every item carries its evidence." |
+| 1:50–2:00 | `#agents-floor` | Switch back to the saved floor position showing a `VERIFIER · approved` immediately followed by `DONE`. Stop scrolling before you speak. Let the recording run out after the line. | "The goal isn't more notifications. It's giving people back their attention." |
 
 ## Word counts
 
 | Time | Length | Words | Spoken at 2.5 w/s | Slack |
 |---|---|---|---|---|
-| 0:00–0:17 | 17s | 38 | 15.2s | 1.8s |
-| 0:17–0:33 | 16s | 35 | 14.0s | 2.0s |
-| 0:33–0:52 | 19s | 43 | 17.2s | 1.8s |
-| 0:52–1:10 | 18s | 37 | 14.8s | 3.2s |
-| 1:10–1:27 | 17s | 38 | 15.2s | 1.8s |
-| 1:27–1:50 | 23s | 51 | 20.4s | 2.6s |
-| 1:50–2:00 | 10s | 15 | 6.0s | 4.0s |
-| **Total** | **120s** | **257** | **102.8s** | **17.2s** |
+| 0:00–0:17 | 17s | 41 | 16.4s | 0.6s |
+| 0:17–0:33 | 16s | 36 | 14.4s | 1.6s |
+| 0:33–0:52 | 19s | 41 | 16.4s | 2.6s |
+| 0:52–1:10 | 18s | 35 | 14.0s | 4.0s |
+| 1:10–1:27 | 17s | 35 | 14.0s | 3.0s |
+| 1:27–1:50 | 23s | 41 | 16.4s | 6.6s |
+| 1:50–2:00 | 10s | 11 | 4.4s | 5.6s |
+| **Total** | **120s** | **240** | **96.0s** | **24.0s** |
 
 Timecodes are contiguous and end at 2:00. The closing line has a 10 second slot; say it, stop, and let the recording run out.
 
@@ -119,6 +95,6 @@ The first Say line names three lanes because the lanes are code and always true.
 
 ## If a judge asks what is not shown
 
-"The live recording shows the Tier 1 handoff and its two refusal tests. The reply handler is implemented behind a flag and not demonstrated. The account timeline is in an open pull request, not on main. Neither is a claim in this recording."
+"The live recording shows the Tier 1 handoff and its two demo-only refusal tests. The reply handler and account timeline are implemented, opt-in, and not demonstrated."
 
 For the diagram, use [architecture.md](architecture.md). For the long-form answers, use [judge_qa.md](judge_qa.md). For what changed and why, use [honesty_changelog.md](honesty_changelog.md).

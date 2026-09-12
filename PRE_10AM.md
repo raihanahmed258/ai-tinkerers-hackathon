@@ -59,7 +59,10 @@ At 11:15: run Inbox against the mock, or teach it to read `#ops-team` SEED MAIL 
 
 ## Model key reminder
 
-**Resolved during the build, kept here so the record is straight.** This paragraph used to say the model was `gpt-5.1` and to set `OPENAI_API_KEY`. The build runs on Claude. `agents.yaml` › `defaults.model` is `claude-sonnet-4-5` and the key is `ANTHROPIC_API_KEY`, read from `.env` at the repo root.
+**Resolved during the build, kept here so the record is straight.** This
+paragraph used to say the model was `gpt-5.1` and to set `OPENAI_API_KEY`. The
+build runs on Claude. `agents.yaml` › `defaults.model` is `claude-sonnet-5` and
+the key is `ANTHROPIC_API_KEY`, read from `.env` at the repo root.
 
 Without that key the mock still runs, but it silently falls back to heuristic rules and the brief comes out wrong: the top item disappears and one item degrades to a bare task id. Treat a missing key as a hard failure rather than a degraded mode. Confirm it loaded before recording:
 

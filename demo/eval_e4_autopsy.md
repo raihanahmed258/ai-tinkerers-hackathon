@@ -191,7 +191,7 @@ E-4 is placed six days out with notes "Tentative." and no linked task. Six days 
 
 ## 4. Mock-only experiment matrix
 
-Run everything from the repo root, `/Users/raihanahmed/Desktop/the-floor`, with `.venv/bin/python`. Never pass `--live`. Experiments X1, X3, X4, X5 and X8 were executed today and their results are recorded as observed; X2, X6 and X7 are specified with predicted outcomes and marked as such. Scratch scripts belong in the session scratchpad, never in the repo.
+Run everything from the repo root with `.venv/bin/python`. Never pass `--live`. Experiments X1, X3, X4, X5 and X8 were executed today and their results are recorded as observed; X2, X6 and X7 are specified with predicted outcomes and marked as such. Scratch scripts belong in the session scratchpad, never in the repo.
 
 | Id | Question | Path | Status |
 |---|---|---|---|
@@ -335,7 +335,8 @@ Code version:
 Model path:
 
 - `ANTHROPIC_API_KEY` was loaded in that process and the log contains no line containing `Falling back to heuristic` (the watchers print `Falling back to heuristic rules...`, the Desk prints `Falling back to heuristic merge...`) and no line containing `call failed` (the watchers print `Warning: Anthropic API call failed for <agent>`, the Desk prints `Warning: Desk merge Anthropic call failed`). One such line means at least one watcher or the Desk ran on the heuristic and the run is AMBER at best. On this machine right now there is no `.env` and no key (H6), so nothing produced here today is GREEN.
-- The model named is `claude-sonnet-4-5` via the Anthropic API, as `agents.yaml` sets it.
+- The current model is Claude Sonnet 5 (`claude-sonnet-5`) via the Anthropic
+  API, as `agents.yaml` sets it.
 
 ### AMBER must be said when any of these is true
 

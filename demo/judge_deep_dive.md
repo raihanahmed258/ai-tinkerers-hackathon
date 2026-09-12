@@ -1,6 +1,6 @@
 # The Floor, for judges who read code
 
-**Thesis.** For an attention system, narrow watchers plus one Desk merge plus a visible verifier gate beats a free-form multi-agent swarm. A swarm optimises for agents talking. An attention system has to optimise for the one scarce thing, a human's next ten minutes. Every design choice below follows from that, and every claim points at a file in this repo at commit 54ef2e6, the checkout the recording runs from.
+**Thesis.** For an attention system, narrow watchers plus one Desk merge plus a visible verifier gate beats a free-form multi-agent swarm. A swarm optimises for agents talking. An attention system has to optimise for the one scarce thing, a human's next ten minutes. Every design choice below follows from that. The recording uses the completed live round indexed in `LIVE_ROUND_REPORT.md`.
 
 ## 1. Information asymmetry is the design, and it has a cost
 
@@ -21,11 +21,17 @@ Underneath all four, `WorkspaceClient` exposes `create_draft` and `list_events` 
 
 ## 3. Auditability: the floor is a readable protocol
 
-Every round writes the same ordered label chain to `#agents-floor`. Pass 1 posts FINDING cards, 8 Ops, 6 Inbox, 6 Follow-up on the mock. Pass 2 posts five PROBLEM cards ranked 1 to 5. Then the refusal block. Then for every action: `ASSIGN · <worker> → <action>`, `VERIFIER · approved | refused | needs_rewrite`, and `DONE` or `BLOCKED`. On the mock that is 7 Ops notes, 5 Inbox drafts, 6 Follow-up tasks, and 1 Desk ask, each as a three-post chain. A worker never executes a refused assignment, because the verdict is posted before the worker acts. A judge can read the channel top to bottom and reconstruct who decided what, in what order, with no log file. That is the audit boundary a swarm cannot give you, because in a swarm the ordering is emergent.
+Every round uses the same ordered protocol in `#agents-floor`. Pass 1 posts
+FINDING cards and pass 2 posts up to five ranked PROBLEM cards. Recording mode
+then adds the synthetic refusal block. For every productive action the floor
+shows `ASSIGN · <worker> → <action>`, `VERIFIER · approved | refused |
+needs_rewrite`, and `DONE` or `BLOCKED`. A worker never executes a refused
+assignment because the verdict is posted before the worker acts. A judge can
+read the channel top to bottom and reconstruct the order without a log file.
 
 ## 4. Refusal theater versus real refusal
 
-`_refusal_theater` (line 1233) runs every round before any productive work. It builds two fake requests, "send email to customer" and `set_field` with field stage, and pushes them through the same gates real actions use: the send is refused by `_normalize_action_type` and the `set_field` on stage by `_verify_action`. Both post `VERIFIER · refused` and then `BLOCKED`. Verified on the mock: two refusals, two blocks, every round. The requests are fake by design; the floor header names the block Refusal theater and marks the asks must not execute. The refusal is real. A Desk that emitted a genuine send would die at layer one. A genuine `set_field` on stage would die at layer two, exactly where the theater's second request dies. `demo/judge_qa.md` at commit 832fb4a conceded that no refusal ever fired in a normal round and so could not be shown. This is the fix for that concession.
+With `--safety-demo`, `_refusal_theater` runs before productive work. It builds two fake requests, "send email to customer" and `set_field` with field stage, and pushes them through the same gates real actions use. Both post `VERIFIER · refused` and then `BLOCKED`. The requests are explicitly fake; normal rounds omit them. A genuine send or protected field change still dies at the same code gates.
 
 ## 5. The brief is the scarce resource, and its order is a prior
 
@@ -33,35 +39,46 @@ Every round writes the same ordered label chain to `#agents-floor`. Pass 1 posts
 
 The findings and the merge are derived. The priority order is a hand-written playbook prior. `floor/eval_unpinned.py --trace` measures it. On the heuristic path, with the stabilisers off the brief is Marigold, Sunset Taco, Harbor Fish. With them on it is Pine & Salt, Copper Kettle, T-1. Nothing was invented and backfill did not fire. Only the order changed. I defend the prior as what an ops lead would write down on day one: penalties and lost champions beat quiet deals. I do not defend it as learned behaviour.
 
-Two more things about the brief. Without `ANTHROPIC_API_KEY` the round silently uses heuristic rules and the brief is wrong: Ember Grill vanishes and item 3 is the bare task id T-1. `eval_expected` scores that AMBER. Loading the key is pre-roll blocker one. And the `Ready:` line prints planned actions from `problem.actions`, not executed ones, so a draft that BLOCKed still reads as ready. That is a bug.
+One more thing about the brief. Without `ANTHROPIC_API_KEY` the round uses
+heuristic rules and the brief is wrong: Ember Grill vanishes and item 3 is the
+bare task id T-1. `eval_expected` scores that AMBER. That matters for a future
+model-backed validation, but not for recording the existing live round. The old
+misleading `Ready:` line has been removed; execution truth stays in `DONE` and
+`BLOCKED` floor receipts.
 
 ## 6. Verifier-as-Desk is a seat constraint, not a cheat
 
 There is no Verifier seat and no Closer seat in the workspace. The VERIFIER verdict posts as Desk. The identity that carries the verdict is `as_agent("verifier")` (`floor/client.py` line 321). It tries `AMBIGUOUS_TOKEN_VERIFIER`, then `AMBIGUOUS_TOKEN_DESK`, and if neither is set it raises `PermissionError`. It never falls back to the default human token. `MCP_MAPPING.md` line 40 claims a fallback the code refuses; that line is wrong and PR #6 is in flight to fix the authorship docs.
 
-The consequence is that `python -m floor.round --live` with only the default token reads `AMBIGUOUS_API_KEY` or `AMBIGUOUS_TOKEN` (line 1570), posts the watcher findings, and dies at the first VERIFIER post inside refusal theater. Confirmed offline. Exporting `AMBIGUOUS_TOKEN_DESK` is a pre-roll blocker. Making the verifier a real seat requires exactly one thing: an Ambiguous agent named Verifier and its token in `AMBIGUOUS_TOKEN_VERIFIER`. `_worker_for_action` already routes notes to a Closer seat when `AMBIGUOUS_TOKEN_CLOSER` resolves. The seat is a token away, and fail-closed means the code will not pretend otherwise.
+`python -m floor.round --live` now preflights the default workspace token,
+Desk-or-Verifier token, and optional MCP dependency before posting anything. A
+future live run needs `AMBIGUOUS_TOKEN_DESK` or `AMBIGUOUS_TOKEN_VERIFIER`.
+Neither is needed to record the existing completed round.
 
-## 7. Tier 2 timeline: on main, not in the recording
+## 7. Tier 2 timeline: opt-in, not in the recording
 
-PR #4 (`cursor/tier2-timeline-64b1`) merged to origin/main at 17:06 UTC today as 76be8d5, after the recording checkout. It adds `floor/timeline.py`: `TimelineStore`, JSON-backed, with per-account `last_decision`, `drafts_prepared`, `waiting_on`, `escalated_at`, `escalation_count`, and `should_escalate(account)`, which returns False when the account was escalated to `#attention` within the past 3 days and is waiting on a human. `run_desk_merge` then downgrades that problem to floor-only and `post_brief` logs `[Timeline] Skipped re-escalation: <account>`. It also carries `_rank_sort_key`, the fix for the rank=None crash in the ablation. That fix is therefore on origin/main but not in 54ef2e6.
-
-I ran the merged tree on the mock from a scratch copy. The committed `seed/timeline.json` records Pine & Salt escalated 2026-09-10 and Copper Kettle, T-1, and T-4 escalated today, all waiting on human. The result is an Attention brief with zero human items. The store also saves back into `seed/timeline.json`, so a round mutates a seed file. The idea is right: an unresolved issue must not become a brand-new alert every day. The shipped state is not demo-safe and it is not behind a flag. So it is not claimed today, and the recording stays at 54ef2e6.
+`floor/timeline.py` provides JSON-backed cross-round state and can suppress a
+repeat escalation while an account is waiting on a human. It now runs only with
+`--timeline` and stores runtime state under ignored `.floor/` by default, rather
+than mutating tracked seed data. The behavior is not shown in the live round,
+so do not claim it in the demo.
 
 ## 8. Non-goals
 
-No sends. No stage moves. No close-date or calendar edits. No autonomous business decisions. No cross-round memory in the recording. No LLM router. The reply handler (`floor/reply_handler.py`, 633 lines, `SAFE_FIELDS` and `BLOCKED_FIELDS` allowlists) is implemented and only runs when `FLOOR_REPLY_LOOP=1`, so the brief's closing line "Reply in this thread and I'll record it" is a promise of designed behaviour, not demonstrated behaviour. Live, the inbox is empty, so expect no Inbox findings and every Inbox draft chain to end BLOCKED on "could not resolve mail id". The `[SEED MAIL]` summary in `#ops-team` and the three seeded drafts are not agent output. A round writes about 113 workspace objects, so a weekday schedule exhausts a 1,000-action tier in under two weeks; `AUTOMATIONS.md` still quotes 25 writes and is stale. All six tasks go to dana with due date today plus two.
+No sends. No stage moves. No close-date or calendar edits. No autonomous business decisions. No cross-round memory in the recording. No LLM router. The reply handler is implemented and only runs when `FLOOR_REPLY_LOOP=1`; while it is off, the brief makes no reply-handling promise. Live, the inbox is empty, so expect no Inbox findings and unresolved draft chains to end BLOCKED. The `[SEED MAIL]` summary and seeded drafts are not agent output. The historical safety-demo mock produced roughly 113 workspace writes; normal mode omits the seven synthetic refusal posts, and `AUTOMATIONS.md` now requires measuring the live configuration before scheduling. All six tasks in that historical run went to dana with due date today plus two.
 
 ## If we had 48 more hours
 
-**Hours 0 to 2.** Export `AMBIGUOUS_TOKEN_DESK` and `ANTHROPIC_API_KEY`, run one live round, capture the channel. Demoable: the first end-to-end run of the current protocol against the real workspace, with VERIFIER posting as Desk.
+**First.** Capture a runner log alongside a deliberate live round so model
+provenance and created workspace objects can be matched independently.
 
-**Hours 2 to 6.** Gate the merged timeline behind `FLOOR_TIMELINE=1`, move the store out of `seed/` into a state directory, and reset the seed so only Pine & Salt is waiting. Demoable: two mock rounds back to back, the second printing `[Timeline] Skipped re-escalation: Pine & Salt` while Ember and Copper stay in the brief.
+**Next.** Exercise the opt-in timeline with two mock rounds back to back, the
+second printing `[Timeline] Skipped re-escalation: Pine & Salt` while other
+eligible accounts remain in the brief.
 
 **Hours 6 to 10.** Move E-4 from Follow-up's `SHOULD_FLAG` to a Desk-merge expectation in `eval_expected`, and add E-3 to the heuristic rule. Demoable: Follow-up scores against what it can actually see, and the eval turns GREEN on the model path.
 
-**Hours 10 to 16.** Fix the `Ready:` line to print executed actions only. Demoable: a BLOCKed draft never appears as ready in `#attention`.
-
-**Hours 16 to 24.** Run with `FLOOR_REPLY_LOOP=1` and a scripted reply from dana naming a new Pine & Salt contact. Demoable: the reply resolves D-105 in `apply_safe_writeback`, writes `contact` on it through `set_deal_field` (a field none of the four layers block; `SAFE_FIELDS` is only consulted for date fields), records a durable CRM note, and `confirm_on_floor` posts `Recorded: …` to the floor as Desk.
+**Later, only if needed.** Run with `FLOOR_REPLY_LOOP=1` and a scripted reply from dana naming a new Pine & Salt contact. Demoable: the reply resolves D-105, records a durable CRM note, and confirms on the floor as Desk.
 
 **Hours 24 to 36.** Create Verifier and Closer seats in Ambiguous, export their tokens, and remove the Desk fallback for verdicts. Demoable: `VERIFIER · refused` posted by an identity that can post nothing else.
 

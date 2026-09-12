@@ -1,5 +1,10 @@
 # Tier 2: Timeline-Based Escalation Control
 
+> Optional and off by default. Enable it with `--timeline` or
+> `FLOOR_TIMELINE=1`. Runtime state is stored in ignored
+> `.floor/timeline.json` unless `FLOOR_TIMELINE_PATH` is set. The tracked
+> `seed/timeline.json` is sample data and is never mutated by a normal round.
+
 ## What This Does
 
 Adds per-account timeline tracking to prevent re-escalating accounts that are already waiting on a human response. When an account has been escalated to `#attention` within the past 3 days, subsequent rounds will downgrade it to floor-only handling instead of re-posting it to humans.
@@ -14,7 +19,7 @@ Adds per-account timeline tracking to prevent re-escalating accounts that are al
   - `should_escalate()`: checks if an account should be escalated to humans
   - `update()`: records decisions, drafts, and escalations
 
-- **`seed/timeline.json`** — Seed data with initial timeline state:
+- **`seed/timeline.json`** — Sample data with initial timeline state:
   - Pine & Salt: escalated 2 days ago, waiting on human
   - Copper Kettle Group: has draft prepared, not waiting
   - Ember Grill: baseline tracking, no escalation
@@ -34,7 +39,7 @@ Adds per-account timeline tracking to prevent re-escalating accounts that are al
 from floor.timeline import get_default_store
 
 # Get store (reads from seed/timeline.json by default)
-store = get_default_store()
+store = get_default_store()  # .floor/timeline.json by default
 
 # Check if account should be escalated
 should_escalate, reason = store.should_escalate("Pine & Salt")
@@ -87,7 +92,7 @@ In `post_brief()`:
 
 ```bash
 cd /workspace
-python3 -m floor.round
+python3 -m floor.round --no-model --timeline
 ```
 
 ### Expected Behavior
@@ -106,13 +111,13 @@ python3 -m floor.round
 
 ```bash
 # Run and check for skip message
-python3 -m floor.round 2>&1 | grep "Timeline"
+python3 -m floor.round --no-model --timeline 2>&1 | grep "Timeline"
 
 # Verify Pine & Salt is not in top 3
-python3 -m floor.round 2>&1 | grep -A10 "Attention brief"
+python3 -m floor.round --no-model --timeline 2>&1 | grep -A10 "Attention brief"
 
 # Check timeline state after run
-cat seed/timeline.json
+cat .floor/timeline.json
 ```
 
 ### Second Round Demo
@@ -130,13 +135,13 @@ If running against live Ambiguous workspace:
 ```bash
 export ANTHROPIC_API_KEY="your-key"
 export AMBIGUOUS_API_KEY="your-token"
-python3 -m floor.round --live
+python3 -m floor.round --live --timeline
 ```
 
 Same behavior as mock, but:
 - Timeline persists across runs
 - Real MCP calls to Ambiguous workspace
-- Timeline.json tracks actual escalation history
+- `.floor/timeline.json` tracks actual escalation history
 
 ## Unit Testing
 

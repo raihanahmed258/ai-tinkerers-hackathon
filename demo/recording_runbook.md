@@ -10,7 +10,10 @@ with `—— Round 2026-09-12 17:13 · done ——` and links brief
 writes on a warm rerun. API keys and agent tokens are irrelevant when recording
 an already completed round.
 
-Browser setup: one window, two tabs, `#agents-floor` first and `#attention` second. Nothing else open. Zoom the browser until one `FINDING` card fills roughly a third of the frame; that zoom is what lets the brief's last two lines fall below the fold in beat 6. Do Not Disturb on. Quit Mail, Slack, and Messages.
+Browser setup: one window, two tabs, `#agents-floor` first and `#attention`
+second. Nothing else open. Zoom until the attention brief's stale `Ready:` and
+reply-promise lines are below the fold. At this zoom, floor protocol posts may
+need to appear one at a time. Do Not Disturb on. Quit Mail, Slack, and Messages.
 
 ---
 
@@ -64,10 +67,12 @@ Use the first Follow-up task chain after refusal theater that ends in `DONE`.
 | Time | Scroll to | Hold | Cursor rests on |
 |---|---|---|---|
 | 0:52–0:56 | `ASSIGN · Follow-up → assign task` | 4 s | the `rule:` line, `wait for VERIFIER · approved before write` |
-| 0:56–1:02 | `VERIFIER · approved` | 6 s | the `reason:` line, `allowlist + safety checks passed` |
-| 1:02–1:10 | `DONE · Follow-up · assign_task` | 8 s | the `result:` line |
+| 0:56–1:02 | scroll to `VERIFIER · approved` | 6 s | the `reason:` line, `allowlist + safety checks passed` |
+| 1:02–1:10 | scroll to `DONE · Follow-up · assign_task` | 8 s | the `result:` line |
 
-Keep all three posts in frame together for the whole beat. If the first chain after refusal theater ends in `BLOCKED`, skip forward to the first chain that ends in `DONE`. If no chain ends in `DONE`, use section 3, case A2.
+Show all three posts in order; they do not need to fit in one frame. If the
+first chain after refusal theater ends in `BLOCKED`, skip forward to the first
+chain that ends in `DONE`.
 
 ### Beat 5 · 1:10–1:27 · Remaining chains to work done · `#agents-floor`
 
@@ -82,14 +87,21 @@ The chains are not meant to be read; the repeating labels are the point. Set the
 
 | Time | Scroll to | Hold | Cursor rests on |
 |---|---|---|---|
-| 1:27–1:28 | click the `#attention` tab | 1 s | nothing; hands off the mouse during the switch |
-| 1:28–1:31 | `Attention brief · <date>` at the top of the frame | 3 s | the second line, `1 item(s) need a person · everything else handled on the floor` |
+| 1:27–1:28 | click the pre-zoomed `#attention` tab | 1 s | nothing |
+| 1:28–1:31 | `Attention brief · <date>` at the top of the frame | 3 s | the `1 item(s) need a person` line |
 | 1:31–1:40 | `1. @theo — Ember Grill` | 9 s | the item's first line |
-| 1:40–1:46 | the Ember Grill evidence | 6 s | its `Evidence:` line |
-| 1:46–1:50 | no scroll | 4 s | `Handled without you: …` |
+| 1:40–1:50 | the Ember Grill cause | 10 s | its cause; do not scroll |
 
-This brief has one item. One is valid because the cap is **at most** three.
-Execution status appears only in the floor's `DONE` and `BLOCKED` receipts.
+This brief has one item. One is valid because the cap is **at most** three. The
+old live message also contains `Ready: assign_task` and a reply promise below
+the evidence. Both predate the cleanup and are not demo claims. Zoom the
+`#attention` tab before recording so those lower lines stay below the fold.
+Do not edit the historical message and do not scroll down.
+
+If the viewport cannot hide them, use this fallback after the normal beat:
+"Those last two lines are from the earlier runner. The cleaned code removed
+planned-action labels and disables reply promises; DONE and BLOCKED are the
+execution truth." Do not rerun the round to clean the screenshot.
 
 The beat 6 Say cell names no account, no owner, and no dollar amount. Do not add them. The cursor on the owner lines is the receipt for "Each item names an owner".
 
@@ -98,7 +110,7 @@ The beat 6 Say cell names no account, no owner, and no dollar amount. Do not add
 | Time | Scroll to | Hold | Cursor rests on |
 |---|---|---|---|
 | 1:50–1:51 | click the `#agents-floor` tab | 1 s | nothing |
-| 1:51–2:00 | the last chain that ends in `DONE` immediately above `—— Work done this round ——`, with `ASSIGN`, `VERIFIER · approved`, `DONE` all in frame | 9 s | the `VERIFIER · approved` label, cursor still |
+| 1:51–2:00 | a `VERIFIER · approved` immediately followed by its `DONE`, near `—— Work done this round ——` | 9 s | the `VERIFIER · approved` label, cursor still |
 
 The tab keeps the beat 5 scroll position, so this chain is one short upward scroll from the `—— Work done this round ——` header. Do not go back to the beat 4 chain; it is many chains higher. In the mock the last chain is Follow-up: `ASSIGN · Follow-up → create task`, `VERIFIER · approved`, `DONE · Follow-up · assign_task`. Live it may be Ops or Follow-up. Any chain ending in `DONE` is a valid receipt for the tagline. Stop scrolling before you speak. Say the line, stop, let the recording run out. Add nothing after it.
 
@@ -106,8 +118,8 @@ The tab keeps the beat 5 scroll position, so this chain is one short upward scro
 
 ## 2. Voice-over script
 
-Rate: 2.5 words per second. Cap: 300 words. This script is 240 words,
-96 seconds spoken inside 120 seconds, with 24 seconds of slack for scrolling
+Rate: 2.5 words per second. Cap: 300 words. This script is 236 words,
+94.4 seconds spoken inside 120 seconds, with 25.6 seconds of slack for scrolling
 and tab switches.
 
 **Source of truth.** The Say cells below are copied word for word from the seven rows of `demo/script.md` in the working tree at reconciliation time. If Part A's review changes that file, change this section to match and re-run the counts. One label caution: `demo/script.md` writes the blocked draft post as `BLOCKED · Inbox · draft reply`; the code prints `BLOCKED · Inbox · draft`, because `execute_actions` passes the action type `draft` to `_post_blocked`. The `ASSIGN` label is `ASSIGN · Inbox → draft reply`. This runbook uses the labels the code prints.
@@ -119,13 +131,13 @@ and tab switches.
 | 3 · Refusal theater | 0:33–0:52 | 19 s | 37 | 14.8 s | 4.2 s |
 | 4 · One approved chain | 0:52–1:10 | 18 s | 35 | 14.0 s | 4.0 s |
 | 5 · Remaining chains to work done | 1:10–1:27 | 17 s | 38 | 15.2 s | 1.8 s |
-| 6 · The brief | 1:27–1:50 | 23 s | 42 | 16.8 s | 6.2 s |
+| 6 · The brief | 1:27–1:50 | 23 s | 38 | 15.2 s | 7.8 s |
 | 7 · Tagline | 1:50–2:00 | 10 s | 15 | 6.0 s | 4.0 s |
-| **Total** | **0:00–2:00** | **120 s** | **240** | **96.0 s** | **24.0 s** |
+| **Total** | **0:00–2:00** | **120 s** | **236** | **94.4 s** | **25.6 s** |
 
 Beat 6 is the one to rehearse twice. It is the brief reveal: land on the single
-Ember Grill owner line, then its evidence, without implying that the cap
-requires three items.
+Ember Grill owner line and keep the stale `Ready:` and reply-promise lines below
+the fold.
 
 ### Beat 1 · 0:00–0:17 · 38 words
 
@@ -158,13 +170,13 @@ recording shows approved and refused, so those are the only verdicts named.
 
 This cell claims nothing about what got done, so it stands unchanged under section 3, case A2. The receipt for "A BLOCKED receipt is not hidden" is any `BLOCKED · …` post that has been in frame in the take: the two refusal-theater posts in beat 3, and live, any `BLOCKED · Inbox · draft` that passes through in this beat.
 
-### Beat 6 · 1:27–1:50 · 42 words
+### Beat 6 · 1:27–1:50 · 38 words
 
-> Humans get one brief in attention, capped at three items in code. This round needs one human: Theo, for Ember Grill, with evidence ids attached. Everything else stayed on the floor, handled or blocked. Nothing was sent. No stage or calendar changed.
+> Humans get one brief in attention, capped at three items in code. This round needs one human: Theo, for Ember Grill. The floor already showed the evidence, refusals, and receipts. Nothing was sent. No stage or calendar changed.
 
-The cell names exactly what is on screen: Theo, Ember Grill, and evidence ids.
-It says the brief is capped at three, not that three items must appear. The
-receipts for the final safety sentence appeared earlier in the take.
+The cell names exactly what is on screen: Theo and Ember Grill. It says the
+brief is capped at three, not that three items must appear. Evidence and safety
+receipts appeared earlier in the take.
 
 ### Beat 7 · 1:50–2:00 · 15 words
 
@@ -295,8 +307,8 @@ Fill the timestamp column from the finished recording. Every spoken claim needs 
 | 18 | Anyone can read the audit trail without a terminal | `#agents-floor` | the frame is an Ambiguous channel and nothing else is in the take (section 4) | __:__ |
 | 19 | A BLOCKED receipt is not hidden. It means the worker stopped instead of guessing | `#agents-floor` | any `BLOCKED · …` post with its `reason:` line that has been in frame: the two refusal-theater posts from row 10, and live, any `BLOCKED · Inbox · draft` that passed through in beat 5 | __:__ |
 | 20 | Humans get one brief in attention, capped at three items in code | `#attention` | `Attention brief · <date>`, line `1 item(s) need a person · everything else handled on the floor` | __:__ |
-| 21 | This round needs Theo for Ember Grill, with evidence ids | `#attention` | `1. @theo — Ember Grill` and its `Evidence:` line | __:__ |
-| 22 | Everything else stayed on the floor, handled or blocked | `#attention` | `Handled without you: …` as the last visible line | __:__ |
+| 21 | This round needs Theo for Ember Grill | `#attention` | `1. @theo — Ember Grill` | __:__ |
+| 22 | The floor already showed evidence, refusals, and receipts | earlier in the take | `merges:`, both refusal chains, and one complete approved chain | __:__ |
 | 23 | Nothing was sent | earlier in the take | `BLOCKED · Inbox · send email to customer` from row 10 | __:__ |
 | 24 | No stage or calendar changed | earlier in the take | `BLOCKED · Ops · set_field`; no calendar action appears in the work summary | __:__ |
 | 27 | Attention is a team sport. Most of the team does not have to be human | `#agents-floor` | the last `DONE` chain above `—— Work done this round ——`, cursor on `VERIFIER · approved` | __:__ |

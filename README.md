@@ -5,6 +5,9 @@ Built at **AI Tinkerers Ottawa — Agents, Everywhere** (September 2026).
 Three narrow watchers, one Desk that merges and decides, an agent-only channel
 where they coordinate, and a human brief capped at three items.
 
+> **Demoing now?** Start with [`DEMO_NOW.md`](DEMO_NOW.md). It points to the
+> completed live round and avoids another paid run.
+
 > **Tier 1 live demo:** The visible handoff is `ASSIGN → VERIFIER · approved | refused | needs_rewrite → DONE | BLOCKED`. The Ambiguous-only shot list is [`demo/script.md`](demo/script.md); it is the source of truth for what the live recording claims.
 
 **The problem.** At a small company one stuck customer does not arrive as one alert. It arrives as four weak signals nobody connects: a deal gone quiet in the CRM, an email nobody answered, an overdue task, and a promise someone made in chat and never kept. No human's job is to read all four every morning, so things slip. The quote never goes out. The kickoff never gets booked. The champion leaves. The filing deadline passes.

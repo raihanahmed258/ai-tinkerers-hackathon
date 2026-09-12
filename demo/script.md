@@ -27,7 +27,13 @@ Confirm these labels below it:
 
 Then open `#attention` and find message `3c3d3750-29fc-4aed-9930-015caa11731c`: one item, `@theo — Ember Grill`.
 
-The take scrolls through this existing round. Do not rerun it. `LIVE_ROUND_REPORT.md` is the evidence index.
+Set browser zoom high enough that the brief's old `Ready:` and reply-promise
+lines sit below the fold. They predate the cleanup and are not demo claims.
+At that zoom, the floor can show protocol posts one at a time; the recording
+does not require three posts to fit in one frame.
+
+The take scrolls through this existing round. Do not rerun or edit it.
+`LIVE_ROUND_REPORT.md` is the evidence index.
 
 ### The honest Inbox expectation
 
@@ -64,10 +70,10 @@ Speaking rate is 2.5 words per second. Each Say cell fits its slot. Word counts 
 | 0:00–0:17 | `#agents-floor` | The `—— Round 2026-09-12 17:13 · pass 1 ——` header, then slow-scroll through the eight `FINDING · Follow-up` cards. Rest the cursor on one `ref:` line. This round has no Ops or Inbox findings. | "This is Brightline Payroll. One stuck customer can leave signals in different tools. Three lanes inspect separate slices: Ops reads CRM, Inbox reads mail, and Follow-up reads tasks, calendar, and selected chat. This live round found follow-up evidence." |
 | 0:17–0:33 | `#agents-floor` | The `—— Round … · pass 2 · Desk merge ——` header and the first two `PROBLEM · … · rank` cards. Rest the cursor on a `merges:` line. | "Pass two. The Desk reads the whole floor and merges same-account cards into one ranked problem. Each problem card carries its evidence ids, so you can trace the merge back to the cards above it." |
 | 0:33–0:52 | `#agents-floor` | The `—— Refusal theater ——` header. Land on `ASSIGN · Inbox → send email to customer`, then `VERIFIER · refused`, then `BLOCKED · Inbox`. Then `ASSIGN · Ops → set_field`, `VERIFIER · refused`, `BLOCKED · Ops`. | "In this safety demo, the Desk posts two deliberately unsafe asks. Send an email to a customer. Move a deal's stage. The verifier gate refuses both, and both end BLOCKED. These are synthetic tests, not customer work." |
-| 0:52–1:10 | `#agents-floor` | One complete approved task chain: `ASSIGN · Follow-up → assign task`, `VERIFIER · approved`, `DONE · Follow-up · assign_task`. Keep all three posts in frame together. | "Now the real work. Every assignment is one bounded step. The Desk posts ASSIGN. The gate posts its verdict: approved or refused. The worker posts DONE or BLOCKED. Nothing writes until the floor shows approved." |
+| 0:52–1:10 | `#agents-floor` | Scroll through one complete approved task chain in order: `ASSIGN · Follow-up → assign task`, `VERIFIER · approved`, `DONE · Follow-up · assign_task`. Pause briefly on each label; they need not fit together. | "Now the real work. Every assignment is one bounded step. The Desk posts ASSIGN. The gate posts its verdict: approved or refused. The worker posts DONE or BLOCKED. Nothing writes until the floor shows approved." |
 | 1:10–1:27 | `#agents-floor` | Slow scroll through the remaining chains toward `—— Work done this round ——`. If a `BLOCKED · Inbox · draft` post is there, let it pass through frame without stopping. | "Every step is on the floor as a post: the ask, the verdict, the receipt. Anyone can read the audit trail without a terminal. A BLOCKED receipt is not hidden. It means the worker stopped instead of guessing." |
-| 1:27–1:50 | `#attention` | Switch tabs. Show the one-item brief. Rest on `1. @theo — Ember Grill`, then its `Evidence:` line. Do not imply that three items were required. | "Humans get one brief in attention, capped at three items in code. This round needs one human: Theo, for Ember Grill, with evidence ids attached. Everything else stayed on the floor, handled or blocked. Nothing was sent. No stage or calendar changed." |
-| 1:50–2:00 | `#agents-floor` | Switch back. One complete chain `ASSIGN`, `VERIFIER · approved`, `DONE` filling the frame. Stop scrolling before you speak. Let the recording run out after the line. | "Attention is a team sport. Most of the team does not have to be human." |
+| 1:27–1:50 | `#attention` | Before recording, set browser zoom so only the brief header, `1. @theo — Ember Grill`, and its cause fit. Keep the lower `Ready:` and reply-promise lines below the fold; they predate the cleanup and are not demo claims. Do not scroll. | "Humans get one brief in attention, capped at three items in code. This round needs one human: Theo, for Ember Grill. The floor already showed the evidence, refusals, and receipts. Nothing was sent. No stage or calendar changed." |
+| 1:50–2:00 | `#agents-floor` | Switch back to the saved floor position showing a `VERIFIER · approved` immediately followed by `DONE`. Stop scrolling before you speak. Let the recording run out after the line. | "Attention is a team sport. Most of the team does not have to be human." |
 
 ## Word counts
 
@@ -78,9 +84,9 @@ Speaking rate is 2.5 words per second. Each Say cell fits its slot. Word counts 
 | 0:33–0:52 | 19s | 37 | 14.8s | 4.2s |
 | 0:52–1:10 | 18s | 35 | 14.0s | 4.0s |
 | 1:10–1:27 | 17s | 38 | 15.2s | 1.8s |
-| 1:27–1:50 | 23s | 42 | 16.8s | 6.2s |
+| 1:27–1:50 | 23s | 38 | 15.2s | 7.8s |
 | 1:50–2:00 | 10s | 15 | 6.0s | 4.0s |
-| **Total** | **120s** | **240** | **96.0s** | **24.0s** |
+| **Total** | **120s** | **236** | **94.4s** | **25.6s** |
 
 Timecodes are contiguous and end at 2:00. The closing line has a 10 second slot; say it, stop, and let the recording run out.
 

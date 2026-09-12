@@ -30,25 +30,38 @@ The merge is the point. Copper Kettle is one problem with four fingerprints (`D-
 
 ## Safety by construction
 
-- **Read-heavy, write-light.** Notes, drafts and tasks. That is the whole write surface.
-- **Never sends.** Customer replies are drafts. `send_email` is never called, in the demo or anywhere else.
-- **Never changes stages, close dates or anyone's calendar.** Agents propose, humans decide.
-- **Closed action set.** `execute_actions` maps a fixed allowlist to client calls and refuses and logs anything else. It is an allowlist in code, not an instruction the model is asked to respect.
-- **Two passes.** Bounded by construction, not by hoping the model stops.
-- **At most three human items.** The cap is enforced in code after the Desk decides.
-- **Facts and dates, never opinions about people.** The "never" list lives in `agents.yaml`.
+Two different strengths of guarantee here, and they are worth keeping apart. Some things the agents *cannot* do because the capability does not exist in the client. Others they *do not* do because the prompts forbid it. Both matter. Only the first kind survives a bad model day.
+
+**Structural. The method does not exist.**
+
+- **Nothing is ever sent to a customer.** `WorkspaceClient` exposes `create_draft` and no send of any kind. There is no code path from an agent to a customer's inbox, so `send_email` cannot be called by mistake.
+- **No calendar is ever modified.** The client can `list_events` and nothing else. No create, no update, no delete.
+- **Nothing is ever deleted.** No delete method exists anywhere on the interface.
+- **Two passes.** The round is a fixed sequence, not a loop with an exit condition, so it cannot run long.
+- **At most three human items.** The cap is applied in code after the Desk decides, not requested of the model.
+
+**Enforced by prompt and honoured in practice, but the capability is there.**
+
+- **Stage and close-date changes.** `set_field` is in the `execute_actions` allowlist, `McpClient.set_deal_field` will write `stage_id` and `close_date`, and `agents.yaml` grants `crm.set_field` to Ops and the Desk. What stops it is `prompts/watcher_ops.md`, which tells the watcher to propose rather than change. Zero `set_field` calls fired in the validated run. So the honest claim is that no stage change happens in a round, not that one is impossible.
+- **Facts and dates, never opinions about people.** The "never" list in `agents.yaml`, reinforced in every playbook, plus a filter in code that drops findings containing feeling-words about customers or judgements about colleagues.
+
+**Read-heavy, write-light either way.** The entire write surface is a note, a task, a draft, a field update and a message on the floor. `execute_actions` maps that fixed allowlist to client calls and refuses and logs anything else.
 
 ---
 
 ## Run it
-
-Needs **Python 3.10 or newer** (the `mcp` package requires it; macOS system Python 3.9 will fail to install requirements).
 
 ```bash
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 .venv/bin/python -m floor.seed     # 20 deals, 12 threads, 9 tasks, 9 events, 26 chat messages
 .venv/bin/python -m floor.round    # one full round against the in-memory mock
+```
+
+The mock path runs on **Python 3.9 or newer**, which is what macOS ships, so the offline round works on a stock Mac with nothing installed. The live path additionally needs **Python 3.10 or newer** and the `mcp` package, which is commented out of `requirements.txt` for exactly that reason:
+
+```bash
+.venv/bin/pip install "mcp>=1.0"   # only for --live
 ```
 
 ### Mock vs live
@@ -108,6 +121,7 @@ Being straight about the edges, because a demo that overclaims is worse than one
 - **The Desk's merge is visible in the brief, not on the floor.** Merged evidence shows up as the brief's `Evidence:` line joining a deal, a task and an event for one account. The Desk does not currently post a per-finding `PROBLEM` block in each card's thread.
 - **Notes and drafts are wired but did not fire in the validated run.** `add_deal_note` and `create_draft` are implemented and exercised by the heuristic path. In the validated model run the Desk chose tasks and questions instead, so that log contains no CRM note and no draft.
 - **The refusal is real code, not a visible demo moment.** Nothing in a normal round trips the allowlist, so you prove it by reading `execute_actions`, not by watching it happen.
+- **The allowlist is wider than the playbooks.** `set_field` is in it and the live client can write a stage or a close date, so the no-stage-change guarantee is a prompt, not a wall. Nothing exercised it in the validated run. Better to say that than to claim a wall that is not there.
 - **The human reply loop is designed and stubbed, not wired.** `reply_loop` exists with the intended shape and is commented out of `run_round`. A human answering in the brief thread and the Desk writing it back to the CRM is the next piece of work, not a thing to claim today.
 - **Live Mail has no inbound.** Ambiguous exposes `list_inbox`, `create_draft_email` and `send_email` but nothing to inject fictional inbound customer mail, so the Inbox watcher has nothing to read against the live workspace. Mitigated by a `[SEED MAIL]` summary in `#ops-team` covering `M-1`, `M-2`, `M-3`, the `M-4` bounce and `M-9`, plus three draft emails. `send_email` was never called. The honest path for Inbox is the mock, and saying so out loud costs nothing.
 

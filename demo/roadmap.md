@@ -1,13 +1,13 @@
-# Designed next, coding in parallel
+# Optional components, not demoed
 
 These are deliberately outside the Tier 1 demo claim.
 
 ## Account timeline
 
-A persistent, per-account record of findings, assignments, verifier verdicts, worker receipts, and human decisions across rounds. It should prevent the same unresolved issue from being reintroduced as a brand-new alert every day.
+Implemented in `floor/timeline.py`, off by default. Enable deliberately with `--timeline`; runtime state is kept under ignored `.floor/`.
 
 ## Reply handler
 
-A handler for explicit human decisions in `#attention`. It should extract only an unambiguous decision, run that proposed write through the same Verifier gate, and then post a `DONE` or `BLOCKED` receipt on `#agents-floor`.
+A handler for explicit human decisions in `#attention`, implemented in `floor/reply_handler.py` and enabled with `FLOOR_REPLY_LOOP=1`.
 
-Neither component is shown in the Ambiguous-only Tier 1 recording or described as working today.
+Neither component is enabled or shown in the Ambiguous-only Tier 1 recording.

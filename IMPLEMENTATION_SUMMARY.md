@@ -1,5 +1,9 @@
 # Implementation Summary: The Floor Agent System
 
+> Historical summary of the initial implementation and PR #1. For current
+> behavior and run commands, use `README.md`; for demo claims, use
+> `demo/claim_sheet.md`.
+
 ## What Was Built
 
 Implemented the five core TODO functions in `floor/round.py` to make The Floor agent system fully functional for the AI Tinkerers Ottawa hackathon.

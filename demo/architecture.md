@@ -19,7 +19,7 @@ flowchart LR
   W -->|DONE or BLOCKED| FLOOR
   FLOOR --> D
   D --> BRIEF[#attention: at most 3 items]
-  T[Injected test: send customer email\nInjected test: move stage] --> V
+  T[Optional demo tests:\nsend customer email · move stage] --> V
 ```
 
 ## Hard lanes, not a broad router agent
@@ -32,17 +32,17 @@ The router is an implementation boundary, not another agent persona and not an L
 
 That keeps evidence narrow before the Desk makes a cross-tool merge.
 
-## Verifier is a protocol, not necessarily a seat
+## Verifier is a protocol, not a required seat
 
-The important visible artifact is the `VERIFIER` verdict on the floor. A dedicated Ambiguous Verifier or Closer seat is optional. If seats are unavailable, the code gate can post the verdict through the Desk or a human-controlled identity. The protocol still supplies the same audit boundary: a worker cannot receive a refused assignment.
+The important visible artifact is the `VERIFIER` verdict on the floor. A dedicated Ambiguous Verifier or Closer seat is optional. Without one, the code gate posts through the Desk token. It never falls back to a human/default token; without either a role token or Desk token, it fails closed.
 
 ## Safety theater is deliberate
 
-Each round includes two injected, fake requests: `send customer email` and `move stage`. The expected outcome is `VERIFIER · refused` for both, before a worker acts. This demonstrates the safety boundary without pretending either was a real customer request.
+Pass `--safety-demo` to inject two fake requests: `send customer email` and `move stage`. Both should receive `VERIFIER · refused` before productive work. Normal rounds omit this synthetic traffic.
 
-## Designed and coding in parallel — not demo claims
+## Optional and not demo claims
 
-- **Account timeline:** persistent per-account memory across rounds.
-- **Reply handler:** records an explicit human decision from `#attention` back into the workspace.
+- **Account timeline:** opt-in persistent per-account memory (`--timeline`).
+- **Reply handler:** opt-in recording of an explicit human decision (`FLOOR_REPLY_LOOP=1`).
 
 Neither is part of the Tier 1 live recording. See [roadmap.md](roadmap.md).

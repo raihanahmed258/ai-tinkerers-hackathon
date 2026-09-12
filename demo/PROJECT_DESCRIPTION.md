@@ -12,7 +12,7 @@ The visible protocol is:
 
 `ASSIGN → VERIFIER · approved | refused | needs_rewrite → DONE | BLOCKED`
 
-The Verifier is a code gate and visible audit boundary. It does not require a dedicated Ambiguous agent seat; when seats are limited, its verdict can post through the Desk or a human-controlled identity. A refused request never reaches a worker.
+The Verifier is a code gate and visible audit boundary. It does not require a dedicated Ambiguous agent seat; without one, its verdict posts through the Desk token and fails closed if Desk is unavailable. A refused request never reaches a worker.
 
 Humans receive one `#attention` brief with at most three items. The system does not send customer messages, move stages, or move close dates.
 

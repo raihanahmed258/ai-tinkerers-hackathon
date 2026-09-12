@@ -25,7 +25,7 @@ Every round writes the same ordered label chain to `#agents-floor`. Pass 1 posts
 
 ## 4. Refusal theater versus real refusal
 
-`_refusal_theater` (line 1233) runs every round before any productive work. It builds two fake requests, "send email to customer" and `set_field` with field stage, and pushes them through the same gates real actions use: the send is refused by `_normalize_action_type` and the `set_field` on stage by `_verify_action`. Both post `VERIFIER · refused` and then `BLOCKED`. Verified on the mock: two refusals, two blocks, every round. The requests are fake by design; the floor header names the block Refusal theater and marks the asks must not execute. The refusal is real. A Desk that emitted a genuine send would die at layer one. A genuine `set_field` on stage would die at layer two, exactly where the theater's second request dies. `demo/judge_qa.md` at commit 832fb4a conceded that no refusal ever fired in a normal round and so could not be shown. This is the fix for that concession.
+With `--safety-demo`, `_refusal_theater` runs before productive work. It builds two fake requests, "send email to customer" and `set_field` with field stage, and pushes them through the same gates real actions use. Both post `VERIFIER · refused` and then `BLOCKED`. The requests are explicitly fake; normal rounds omit them. A genuine send or protected field change still dies at the same code gates.
 
 ## 5. The brief is the scarce resource, and its order is a prior
 

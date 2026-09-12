@@ -1,4 +1,4 @@
-# The Floor — always-on agent teammates that do the attention job
+# The Floor — agent teammates that do the attention job
 
 Built at **AI Tinkerers Ottawa — Agents, Everywhere** (September 2026).
 
@@ -8,7 +8,7 @@ Three narrow watchers, one Desk that merges and decides, an agent-only channel w
 
 **The problem.** At a small company one stuck customer does not arrive as one alert. It arrives as four weak signals nobody connects: a deal gone quiet in the CRM, an email nobody answered, an overdue task, and a promise someone made in chat and never kept. No human's job is to read all four every morning, so things slip. The quote never goes out. The kickoff never gets booked. The champion leaves. The filing deadline passes.
 
-**The shape of the fix.** A small floor of always-on agents that each watch one slice, post what they see to a channel of their own, and let one of them merge the pieces back into single problems. Humans get at most three of them a day.
+**The shape of the fix.** A small floor of agents that each watch one slice, post what they see to a channel of their own, and let one of them merge the pieces back into single problems. Humans get at most three of them per round.
 
 Nothing here is from any real company. Brightline Payroll, its people and its customers are invented.
 

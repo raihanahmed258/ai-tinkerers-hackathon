@@ -370,11 +370,39 @@ class McpClient:
                 return _unwrap_tool_result(result)
 
     def _tool(self, name: str, arguments: dict | None = None):
-        return _run(self._acall(name, arguments))
+        import time
+        last = None
+        for attempt in range(4):
+            try:
+                return _run(self._acall(name, arguments))
+            except Exception as e:
+                last = e
+                msg = str(e)
+                # Ambiguous occasionally returns opaque tool errors / rate flakes
+                if "An error occurred while executing the tool" in msg or "Input validation error" in msg:
+                    time.sleep(1.5 * (attempt + 1))
+                    continue
+                raise
+        raise last
 
     def _paged(self, name: str, arguments: dict | None = None, cap: int = 500) -> list[dict]:
         args = dict(arguments or {})
-        args.setdefault("limit", 100)
+        # Ambiguous get_channel_messages schema expects limit as string; other tools want int.
+        if name == "get_channel_messages":
+            # Ambiguous errors on large pages for busy channels (e.g. agents-floor);
+            # keep pages small and rely on cursor pagination in this helper.
+            args.setdefault("limit", "20")
+            try:
+                n = int(args["limit"])
+            except (TypeError, ValueError):
+                n = 20
+            args["limit"] = str(max(1, min(n, 20)))
+        else:
+            args.setdefault("limit", 100)
+            try:
+                args["limit"] = int(args["limit"])
+            except (TypeError, ValueError):
+                args["limit"] = 100
         out: list[dict] = []
         cursor = None
         while True:
@@ -409,7 +437,7 @@ class McpClient:
     # ---- chat ----
     def read_channel(self, channel: str, since_hours: int = 48) -> list[dict]:
         cid = self._channel_id(channel)
-        raw = self._paged("get_channel_messages", {"channel_id": cid, "limit": "100"})
+        raw = self._paged("get_channel_messages", {"channel_id": cid, "limit": "20"})
         cutoff = None
         if since_hours is not None:
             cutoff = dt.datetime.now(dt.timezone.utc) - dt.timedelta(hours=since_hours)

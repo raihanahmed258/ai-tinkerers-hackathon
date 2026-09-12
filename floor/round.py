@@ -694,7 +694,7 @@ Please analyze these findings and merge them into PROBLEM blocks. Return a JSON 
     human_items = [p for p in problems if p.get("human")]
     if len(human_items) > 3:
         # Keep top 3 by rank, downgrade the rest
-        for p in sorted(problems, key=lambda x: x.get("rank", 99))[3:]:
+        for p in sorted(problems, key=_rank_sort_key)[3:]:
             if p.get("human"):
                 p["human"] = None
     
@@ -964,7 +964,7 @@ def _heuristic_desk_merge(findings: list[dict]) -> list[dict]:
         rank += 1
     
     # Sort by needs_human first, then by rank
-    problems.sort(key=lambda p: (0 if p.get("human") else 1, p.get("rank", 99)))
+    problems.sort(key=lambda p: (0 if p.get("human") else 1, _rank_sort_key(p)))
     
     # Re-rank
     for i, p in enumerate(problems):
@@ -1095,6 +1095,17 @@ def _normalize_action_type(raw: str) -> str:
         "add_note", "set_field", "draft", "assign_task", "ask", "flag_event", "none"
     } else action_type
 
+
+
+def _rank_sort_key(problem: dict) -> int:
+    """Sort key for problem rank. Missing/None/unparseable ranks sort last (99)."""
+    r = problem.get("rank") if isinstance(problem, dict) else None
+    if r is None or r == "":
+        return 99
+    try:
+        return int(r)
+    except (TypeError, ValueError):
+        return 99
 
 def _ensure_productive_actions(problem: dict) -> list[dict]:
     """If Desk left a problem with no runnable actions, invent safe defaults so agents do work."""
@@ -1436,7 +1447,7 @@ def post_brief(problems: list[dict], ws: WorkspaceClient) -> str:
     
     human_items = sorted(
         [p for p in problems if p.get("human")],
-        key=lambda p: p.get("rank", 99),
+        key=_rank_sort_key,
     )[:3]
     handled_items = [p for p in problems if not p.get("human")]
     
@@ -1538,7 +1549,7 @@ def run_round(ws: WorkspaceClient) -> None:
             f"Posting PROBLEM cards, then the human brief → #{attention.lstrip('#')}.",
         )
         # Show the merge path on the floor (top 5 by rank) so the channel isn't "findings forever"
-        ranked = sorted(problems, key=lambda p: p.get("rank", 99))[:5]
+        ranked = sorted(problems, key=_rank_sort_key)[:5]
         for problem in ranked:
             ws.post(floor, _render_problem_card(problem))
 

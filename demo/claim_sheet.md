@@ -2,6 +2,12 @@
 
 Every other file in `demo/` must agree with this sheet. If a doc and this sheet disagree, the sheet wins and the doc is wrong.
 
+Live source: the completed 17:13–17:18 UTC round documented in
+[`../LIVE_ROUND_REPORT.md`](../LIVE_ROUND_REPORT.md). It has eight Follow-up
+findings, five merged problems, both refusal chains, approved and blocked work,
+and a one-item Ember Grill brief. Its channel posts do not prove model
+provenance.
+
 ## WILL CLAIM LIVE
 
 - **Hard watcher lanes.** `#agents-floor`, label `FINDING · Follow-up`, each card carrying a `ref:` line (a seed id on the mock, a live id or chat message live). Lanes are code in `floor/router.py` `slice_for`, not an LLM. `FINDING · Ops` and `FINDING · Inbox` are claimed only if a judge can see one on screen: the live CRM has no stage-entered date and the live inbox is empty, so both blocks can be absent. Cards carry their own seat name only if the three watcher tokens are set; otherwise every post is signed as Desk.
@@ -14,7 +20,7 @@ Every other file in `demo/` must agree with this sheet. If a doc and this sheet 
 
 ## WILL NOT CLAIM
 
-- A model-validated run of the current protocol. The only validation artifact predates the protocol (H1). The counts we quote come from the offline mock on the heuristic path.
+- A model-validated run of the current protocol. The complete live round proves the workspace protocol, but there is no matching runner log proving whether it used Claude.
 - A live Inbox finding or a live Mail draft as agent output. The three drafts in the workspace were placed during seeding.
 - The reply loop as working. It is implemented in `floor/reply_handler.py` behind `FLOOR_REPLY_LOOP`, off by default, and the brief does not promise reply handling while it is off.
 - The account timeline as demonstrated. It is merged but opt-in (`--timeline`), uses ignored runtime state under `.floor/`, and is kept off for the recording. The `rank=None` fix is present on current `main`.

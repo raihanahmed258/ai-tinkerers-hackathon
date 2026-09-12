@@ -1,6 +1,6 @@
 # The Floor, for judges who read code
 
-**Thesis.** For an attention system, narrow watchers plus one Desk merge plus a visible verifier gate beats a free-form multi-agent swarm. A swarm optimises for agents talking. An attention system has to optimise for the one scarce thing, a human's next ten minutes. Every design choice below follows from that, and every claim points at a file in this repo at commit 54ef2e6, the checkout the recording runs from.
+**Thesis.** For an attention system, narrow watchers plus one Desk merge plus a visible verifier gate beats a free-form multi-agent swarm. A swarm optimises for agents talking. An attention system has to optimise for the one scarce thing, a human's next ten minutes. Every design choice below follows from that. The recording uses the completed live round indexed in `LIVE_ROUND_REPORT.md`.
 
 ## 1. Information asymmetry is the design, and it has a cost
 
@@ -41,11 +41,13 @@ There is no Verifier seat and no Closer seat in the workspace. The VERIFIER verd
 
 `python -m floor.round --live` now preflights the default workspace token, Desk-or-Verifier token, and optional MCP dependency before posting anything. Exporting `AMBIGUOUS_TOKEN_DESK` remains a pre-roll blocker. A dedicated Verifier seat can instead use `AMBIGUOUS_TOKEN_VERIFIER`; fail-closed means the code will not pretend a human/default identity is that role.
 
-## 7. Tier 2 timeline: on main, not in the recording
+## 7. Tier 2 timeline: opt-in, not in the recording
 
-PR #4 (`cursor/tier2-timeline-64b1`) merged to origin/main at 17:06 UTC today as 76be8d5, after the recording checkout. It adds `floor/timeline.py`: `TimelineStore`, JSON-backed, with per-account `last_decision`, `drafts_prepared`, `waiting_on`, `escalated_at`, `escalation_count`, and `should_escalate(account)`, which returns False when the account was escalated to `#attention` within the past 3 days and is waiting on a human. `run_desk_merge` then downgrades that problem to floor-only and `post_brief` logs `[Timeline] Skipped re-escalation: <account>`. It also carries `_rank_sort_key`, the fix for the rank=None crash in the ablation. That fix is therefore on origin/main but not in 54ef2e6.
-
-I ran the merged tree on the mock from a scratch copy. The committed `seed/timeline.json` records Pine & Salt escalated 2026-09-10 and Copper Kettle, T-1, and T-4 escalated today, all waiting on human. The result is an Attention brief with zero human items. The store also saves back into `seed/timeline.json`, so a round mutates a seed file. The idea is right: an unresolved issue must not become a brand-new alert every day. The shipped state is not demo-safe and it is not behind a flag. So it is not claimed today, and the recording stays at 54ef2e6.
+`floor/timeline.py` provides JSON-backed cross-round state and can suppress a
+repeat escalation while an account is waiting on a human. It now runs only with
+`--timeline` and stores runtime state under ignored `.floor/` by default, rather
+than mutating tracked seed data. The behavior is not shown in the live round,
+so do not claim it in the demo.
 
 ## 8. Non-goals
 
@@ -53,9 +55,12 @@ No sends. No stage moves. No close-date or calendar edits. No autonomous busines
 
 ## If we had 48 more hours
 
-**Hours 0 to 2.** Export `AMBIGUOUS_TOKEN_DESK` and `ANTHROPIC_API_KEY`, run one live round, capture the channel. Demoable: the first end-to-end run of the current protocol against the real workspace, with VERIFIER posting as Desk.
+**First.** Capture a runner log alongside a deliberate live round so model
+provenance and created workspace objects can be matched independently.
 
-**Hours 2 to 6.** Gate the merged timeline behind `FLOOR_TIMELINE=1`, move the store out of `seed/` into a state directory, and reset the seed so only Pine & Salt is waiting. Demoable: two mock rounds back to back, the second printing `[Timeline] Skipped re-escalation: Pine & Salt` while Ember and Copper stay in the brief.
+**Next.** Exercise the opt-in timeline with two mock rounds back to back, the
+second printing `[Timeline] Skipped re-escalation: Pine & Salt` while other
+eligible accounts remain in the brief.
 
 **Hours 6 to 10.** Move E-4 from Follow-up's `SHOULD_FLAG` to a Desk-merge expectation in `eval_expected`, and add E-3 to the heuristic rule. Demoable: Follow-up scores against what it can actually see, and the eval turns GREEN on the model path.
 

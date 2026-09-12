@@ -2,7 +2,8 @@
 
 Built at **AI Tinkerers Ottawa — Agents, Everywhere** (September 2026).
 
-Three narrow watchers, one Desk that merges and decides, an agent-only channel where they coordinate, and a three-item brief for humans.
+Three narrow watchers, one Desk that merges and decides, an agent-only channel
+where they coordinate, and a human brief capped at three items.
 
 > **Tier 1 live demo:** The visible handoff is `ASSIGN → VERIFIER · approved | refused | needs_rewrite → DONE | BLOCKED`. The Ambiguous-only shot list is [`demo/script.md`](demo/script.md); it is the source of truth for what the live recording claims.
 
@@ -121,6 +122,8 @@ Ops is at ceiling and the brief lands in the right order. Inbox recall is the kn
 ## What works today, and what does not
 
 The committed model-backed validation artifact predates the current Tier 1 protocol. It produced 17 finding cards, 21 floor posts, 3 tasks, and a three-item brief ranked Ember Grill, Pine & Salt, then Copper Kettle. Use [`MOCK_ROUND_VALIDATE3.txt`](MOCK_ROUND_VALIDATE3.txt) only as evidence for that earlier run, not for the later `ASSIGN → VERIFIER → DONE/BLOCKED` protocol. A current no-model smoke test produces more audit posts and intentionally scores AMBER on ranking.
+
+A complete Tier 1 round is also visible in the live Ambiguous workspace. It ran from 17:13–17:18 UTC on 2026-09-12: 8 Follow-up findings, 5 merged problems, both safety refusals, approved and blocked worker chains, a done marker, and a linked one-item Ember Grill brief. [`LIVE_ROUND_REPORT.md`](LIVE_ROUND_REPORT.md) records the message ids and limits. The workspace posts do not independently prove which model path produced that round.
 
 Being straight about the edges, because a demo that overclaims is worse than one that concedes:
 

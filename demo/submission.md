@@ -52,7 +52,12 @@ Brightline Payroll is invented, along with every person and customer in it. The 
 
 ## 6. Social post
 
-Built The Floor at AI Tinkerers Ottawa today. Three narrow agents watch a company's CRM, inbox, tasks and calendar, a Desk merges what they find, and every action crosses a visible verifier gate on an agent-only channel before a human sees a three-item brief. Nothing is ever sent to a customer. Extraction runs on Claude. The hands are the Ambiguous MCP. Thanks @AnthropicAI @AmbiguousAI #AITinkerers #AgentsEverywhere
+Built The Floor at AI Tinkerers Ottawa today. Three narrow agents watch a
+company's CRM, inbox, tasks and calendar, a Desk merges what they find, and every
+action crosses a visible verifier gate on an agent-only channel before a human
+sees a brief capped at three items. Nothing is ever sent to a customer. The
+hands are the Ambiguous MCP. Thanks @AnthropicAI @AmbiguousAI
+#AITinkerers #AgentsEverywhere
 
 **Builder, confirm before posting:** only Anthropic and Ambiguous are tagged, because Claude and the Ambiguous MCP are in the build. Check both handles against the event's own sponsor list before you post. Do not add any other sponsor handle unless you can see it on that list with your own eyes. Do not guess a handle.
 
@@ -60,7 +65,9 @@ Built The Floor at AI Tinkerers Ottawa today. Three narrow agents watch a compan
 
 ## 7. Repo one-liner
 
-The Floor: agent teammates that protect human attention. Three narrow watchers, one Desk that merges and assigns, a verifier gate every action must cross, and a three-item brief for humans. Built at AI Tinkerers Ottawa, September 2026.
+The Floor: agent teammates that protect human attention. Three narrow watchers,
+one Desk that merges and assigns, a verifier gate every action must cross, and a
+human brief capped at three items. Built at AI Tinkerers Ottawa, September 2026.
 
 ---
 

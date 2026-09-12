@@ -37,7 +37,7 @@ The key is still named `grokbot` in the Ambiguous console, which is a leftover f
 
 `McpClient.as_agent(agent_id)` switches to `AMBIGUOUS_TOKEN_<AGENT>` / `AMBIGUOUS_API_KEY_<AGENT>` when set (see `AGENT_TOKEN_ENV` in `floor/client.py`).
 
-**Without `AMBIGUOUS_TOKEN_VERIFIER` (or `AMBIGUOUS_API_KEY_VERIFIER`), Verifier posts via `as_agent('verifier')` fall back to the Desk agent token (then the default token only if Desk is also unset).** So Ambiguous authorship is Desk, not Raihan — GAP A. Do **not** block the demo on identity, and **do not invent tokens**. Same fallback applies to any other missing specialist (ops/inbox/followup/closer).
+**Without `AMBIGUOUS_TOKEN_VERIFIER` (or `AMBIGUOUS_API_KEY_VERIFIER`), Verifier posts via `as_agent('verifier')` fall back to the **Desk** agent token.** Verifier/Closer **never** fall back to the human default — if Desk is also unset, `as_agent` fail-closes with a loud `PermissionError`. Other workers (ops/inbox/followup) may still use the default token if Desk is unset. Do **not** invent tokens. See `.env.example`.
 
 ## Mail id resolution (live UUID / seed M-*)
 

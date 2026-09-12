@@ -71,6 +71,8 @@ The mock path runs on **Python 3.9 or newer**, which is what macOS ships, so the
 | **Mock** (default) | `python -m floor.round` | `MockClient`, entirely offline and in memory. Every post, draft, note and task prints to the terminal. |
 | **Live** | `python -m floor.round --live` | `McpClient` against an Ambiguous workspace over MCP (Streamable HTTP). Needs `AMBIGUOUS_API_KEY` or `AMBIGUOUS_TOKEN`; URL defaults to `https://app.ambiguous.ai/mcp` and `AMBIGUOUS_MCP_URL` overrides it. |
 
+**Per-agent authorship (optional).** Set `AMBIGUOUS_TOKEN_OPS`, `AMBIGUOUS_TOKEN_INBOX`, `AMBIGUOUS_TOKEN_FOLLOWUP`, `AMBIGUOUS_TOKEN_DESK`, `AMBIGUOUS_TOKEN_VERIFIER`, `AMBIGUOUS_TOKEN_CLOSER` (see `.env.example`) so floor posts show as those agents. Missing specialist tokens fall back to Desk; Verifier/Closer never fall back to the human default token (GAP A).
+
 Tool-by-tool mapping from this repo's `WorkspaceClient` interface to the real Ambiguous tool names is in [`MCP_MAPPING.md`](MCP_MAPPING.md). What got seeded into the live workspace, and with which ids, is in [`SEED_REPORT.md`](SEED_REPORT.md).
 
 ### The model key is not optional

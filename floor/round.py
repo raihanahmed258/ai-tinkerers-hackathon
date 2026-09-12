@@ -20,6 +20,12 @@ import argparse, datetime as dt, json, os, re, time
 from pathlib import Path
 import yaml
 
+try:
+    from dotenv import load_dotenv
+    load_dotenv(Path(__file__).resolve().parent.parent / ".env")
+except Exception:
+    pass
+
 from .client import MockClient, WorkspaceClient
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -333,9 +339,8 @@ def run_watcher(agent: dict, ws: WorkspaceClient) -> list[str]:
 Please analyze this data according to your instructions and return a JSON object with a "findings" array. Each finding should have: agent, confidence, account, ref, what, why_stalled, evidence, proposed, needs_human."""
             
             response = client.messages.create(
-                model=CFG["defaults"].get("model", "claude-3-5-sonnet-20241022"),
+                model=CFG["defaults"].get("model", "claude-sonnet-4-5"),
                 max_tokens=4096,
-                temperature=0.3,
                 system=system_prompt,
                 messages=[
                     {"role": "user", "content": user_msg}
@@ -409,9 +414,8 @@ def run_desk_merge(cards: list[str], ws: WorkspaceClient) -> list[dict]:
 Please analyze these findings and merge them into PROBLEM blocks. Return a JSON object with a "problems" array. Each problem should have: account, rank, merges (array of refs), cause, actions (array of {{agent, action, args}}), human (null or {{who, text}})."""
             
             response = client.messages.create(
-                model=CFG["defaults"].get("model", "claude-3-5-sonnet-20241022"),
+                model=CFG["defaults"].get("model", "claude-sonnet-4-5"),
                 max_tokens=4096,
-                temperature=0.3,
                 system=desk_prompt,
                 messages=[
                     {"role": "user", "content": user_msg}

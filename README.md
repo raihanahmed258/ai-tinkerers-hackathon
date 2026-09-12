@@ -52,7 +52,7 @@ python3 -m floor.round         # runs complete mock round with heuristic fallbac
 - **Live mode:** `python3 -m floor.round --live` — connects to your Ambiguous workspace via MCP. Requires `AMBIGUOUS_API_KEY` or `AMBIGUOUS_TOKEN` environment variable.
 
 **API Key behavior:**
-- **With OpenAI API key:** Set `OPENAI_API_KEY` environment variable. The system calls GPT to analyze data and generate findings/decisions.
+- **With Anthropic API key:** Set `ANTHROPIC_API_KEY` environment variable. The system calls Claude to analyze data and generate findings/decisions.
 - **Without API key (CI/demo fallback):** The system uses built-in heuristic rules to generate plausible findings. This ensures `python3 -m floor.round` always produces terminal output even without credentials.
 
 `MockClient` prints every action as it happens, so you can watch the entire round unfold with zero credentials. Check output against `seed/expected_findings.md`. If Bluebird (D-106) gets flagged, the logic is too eager — the controls are there to catch exactly that.
@@ -65,7 +65,7 @@ python3 -m floor.round         # runs complete mock round with heuristic fallbac
 2. **Automations app.** Open it and see whether it can run an agent on a schedule or on an event. If it can, it replaces Trigger.dev for the morning run (still mention Trigger.dev if you use it anywhere).
 3. **MCP.** Follow the workspace's agent connection guide. From any MCP client, **list the tools** and prove the eight calls in `client.py`: read a channel, post a message, list CRM records, add a note / set a field, list mail threads, create a draft, list tasks / create a task, list calendar events. Write the real tool names next to each method in `McpClient`. This is the step most likely to eat time — do it tonight, not at 11:15.
 4. **Seed the workspace.** Once the mapping exists, extend `seed.py`'s live branch to call the create methods and load the company. If MCP is not cooperating by bedtime, seed by hand tomorrow morning: the CSVs are small, and the demo only needs Copper Kettle, Marigold, Ember Grill and Pine & Salt to be perfect.
-5. **Model access.** Starter credits and repo come from the organisers before the event — confirm the model name and put it in `agents.yaml › defaults.model`.
+5. **Model access.** Set up `ANTHROPIC_API_KEY` environment variable for Claude API access. Put the model name in `agents.yaml › defaults.model` (currently `claude-3-5-sonnet-20241022`).
 6. **Budget.** Free tier is 1,000 AI actions/month. A full round is roughly 20–40 actions. Test on the mock; hit the live workspace only for end-to-end checks and the recording.
 7. **Sleep.** Seriously. Four hours of building on no sleep loses to three hours on eight.
 

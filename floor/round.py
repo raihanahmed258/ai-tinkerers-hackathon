@@ -315,30 +315,51 @@ def run_watcher(agent: dict, ws: WorkspaceClient) -> list[str]:
     system_prompt = playbook(agent)
     
     # Check for API key
-    api_key = os.environ.get("OPENAI_API_KEY")
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
     
     if not api_key:
         # Fallback: use heuristic rules for demo purposes when no API key
         findings = _heuristic_watcher(agent_id, slice_data)
     else:
-        # Call OpenAI with structured output request
+        # Call Anthropic Claude with structured output request
         try:
-            from openai import OpenAI
-            client = OpenAI(api_key=api_key)
+            from anthropic import Anthropic
+            client = Anthropic(api_key=api_key)
             
-            user_msg = f"Here is the data for this round:\n\n{json.dumps(slice_data, indent=2)}"
+            user_msg = f"""Here is the data for this round:
+
+{json.dumps(slice_data, indent=2)}
+
+Please analyze this data according to your instructions and return a JSON object with a "findings" array. Each finding should have: agent, confidence, account, ref, what, why_stalled, evidence, proposed, needs_human."""
             
-            response = client.chat.completions.create(
-                model=CFG["defaults"].get("model", "gpt-4o"),
+            response = client.messages.create(
+                model=CFG["defaults"].get("model", "claude-3-5-sonnet-20241022"),
+                max_tokens=4096,
+                temperature=0.3,
+                system=system_prompt,
                 messages=[
-                    {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_msg}
-                ],
-                response_format={"type": "json_object"},
-                temperature=0.3
+                ]
             )
             
-            result = json.loads(response.choices[0].message.content)
+            # Extract text from response
+            response_text = ""
+            for block in response.content:
+                if hasattr(block, 'text'):
+                    response_text += block.text
+            
+            # Try to parse JSON from the response
+            # Claude might wrap JSON in markdown code blocks
+            response_text = response_text.strip()
+            if response_text.startswith("```json"):
+                response_text = response_text[7:]
+            if response_text.startswith("```"):
+                response_text = response_text[3:]
+            if response_text.endswith("```"):
+                response_text = response_text[:-3]
+            response_text = response_text.strip()
+            
+            result = json.loads(response_text)
             findings = result.get("findings", [])
             
             # Enforce max_findings
@@ -349,7 +370,7 @@ def run_watcher(agent: dict, ws: WorkspaceClient) -> list[str]:
             findings = _filter_never_list(findings)
             
         except Exception as e:
-            print(f"\nWarning: OpenAI API call failed for {agent_id}: {e}")
+            print(f"\nWarning: Anthropic API call failed for {agent_id}: {e}")
             print(f"Falling back to heuristic rules...\n")
             findings = _heuristic_watcher(agent_id, slice_data)
     
@@ -369,35 +390,55 @@ def run_desk_merge(cards: list[str], ws: WorkspaceClient) -> list[dict]:
         if parsed:
             findings.append(parsed)
     
-    api_key = os.environ.get("OPENAI_API_KEY")
+    api_key = os.environ.get("ANTHROPIC_API_KEY")
     
     if not api_key:
         # Heuristic merge
         problems = _heuristic_desk_merge(findings)
     else:
         try:
-            from openai import OpenAI
-            client = OpenAI(api_key=api_key)
+            from anthropic import Anthropic
+            client = Anthropic(api_key=api_key)
             
             desk_prompt = (ROOT / "prompts/desk.md").read_text(encoding="utf-8")
             
-            user_msg = f"Here are the findings from this round:\n\n{json.dumps(findings, indent=2)}"
+            user_msg = f"""Here are the findings from this round:
+
+{json.dumps(findings, indent=2)}
+
+Please analyze these findings and merge them into PROBLEM blocks. Return a JSON object with a "problems" array. Each problem should have: account, rank, merges (array of refs), cause, actions (array of {{agent, action, args}}), human (null or {{who, text}})."""
             
-            response = client.chat.completions.create(
-                model=CFG["defaults"].get("model", "gpt-4o"),
+            response = client.messages.create(
+                model=CFG["defaults"].get("model", "claude-3-5-sonnet-20241022"),
+                max_tokens=4096,
+                temperature=0.3,
+                system=desk_prompt,
                 messages=[
-                    {"role": "system", "content": desk_prompt},
                     {"role": "user", "content": user_msg}
-                ],
-                response_format={"type": "json_object"},
-                temperature=0.3
+                ]
             )
             
-            result = json.loads(response.choices[0].message.content)
+            # Extract text from response
+            response_text = ""
+            for block in response.content:
+                if hasattr(block, 'text'):
+                    response_text += block.text
+            
+            # Try to parse JSON from the response
+            response_text = response_text.strip()
+            if response_text.startswith("```json"):
+                response_text = response_text[7:]
+            if response_text.startswith("```"):
+                response_text = response_text[3:]
+            if response_text.endswith("```"):
+                response_text = response_text[:-3]
+            response_text = response_text.strip()
+            
+            result = json.loads(response_text)
             problems = result.get("problems", [])
             
         except Exception as e:
-            print(f"\nWarning: Desk merge OpenAI call failed: {e}")
+            print(f"\nWarning: Desk merge Anthropic call failed: {e}")
             print(f"Falling back to heuristic merge...\n")
             problems = _heuristic_desk_merge(findings)
     

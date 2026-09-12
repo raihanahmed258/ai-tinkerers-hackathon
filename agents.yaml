@@ -3,7 +3,7 @@
 # Working title for the project: "The Floor" (rename freely — just don't call it Grok Bot).
 
 defaults:
-  model: gpt-5.1            # whatever the OpenAI starter kit provides; any tool-calling model works
+  model: claude-3-5-sonnet-20241022  # Anthropic Claude Sonnet 3.5 for tool/JSON use
   max_findings_per_run: 8   # caps chatter and protects the 1,000-action monthly budget
   never:
     - send any email or message to a customer (drafts only)

@@ -19,6 +19,7 @@ Implemented the five core TODO functions in `floor/round.py` to make The Floor a
 - **Inbox watcher**: Flags unanswered emails, bounces, customer deadlines
 - **Follow-up watcher**: Catches overdue tasks, orphaned meetings, broken chat promises
 - **Desk agent**: Merges findings, decides actions, escalates only 3 items to humans
+- **Model**: Uses Anthropic Claude (claude-3-5-sonnet-20241022) for analysis when API key present
 
 ### 2. Safety Constraints (Enforced in Code)
 - ✅ Max 8 findings per agent (`agents.yaml` config)
@@ -29,7 +30,7 @@ Implemented the five core TODO functions in `floor/round.py` to make The Floor a
 - ✅ Filter "never" list: no customer feelings, no editorializing about people
 
 ### 3. Offline Development
-- **Heuristic fallback**: When no OpenAI API key present, uses rule-based logic
+- **Heuristic fallback**: When no `ANTHROPIC_API_KEY` present, uses rule-based logic
 - **MockClient**: All actions print to terminal for development/testing
 - **Seed data**: 20 fictional deals, 12 email threads, 9 tasks, 9 events, 26 chat messages
 - **Control tests**: Healthy deals (like Bluebird D-106) correctly NOT flagged
@@ -74,10 +75,16 @@ python3 -m floor.seed    # Verify seed loads
 python3 -m floor.round   # Run full round with heuristic fallback
 ```
 
+### With Anthropic Claude
+```bash
+export ANTHROPIC_API_KEY="your-anthropic-api-key"
+python3 -m floor.round   # Uses Claude for analysis
+```
+
 ### Live mode (requires Ambiguous workspace)
 ```bash
 export AMBIGUOUS_API_KEY="your-key-here"
-export OPENAI_API_KEY="your-openai-key"  # optional, for LLM vs heuristics
+export ANTHROPIC_API_KEY="your-anthropic-key"  # optional, for LLM vs heuristics
 python3 -m floor.round --live
 ```
 

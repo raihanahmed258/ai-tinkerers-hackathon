@@ -1,5 +1,4 @@
-openai>=1.50
-openai-agents>=0.1        # Agents SDK (tool loop + MCP support); drop if you hand-roll the loop
+anthropic>=0.39.0         # Anthropic Claude API
 mcp>=1.0                  # only if you connect to the workspace MCP server directly
 pyyaml>=6.0
 rich>=13.0                # pretty terminal output for the demo recording

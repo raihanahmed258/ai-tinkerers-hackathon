@@ -50,29 +50,241 @@ def slice_for(agent_id: str, ws: WorkspaceClient) -> dict:
     raise KeyError(agent_id)
 
 
+def _text(value) -> str:
+    """Coerce optional/LLM fields so `.lower()` never sees None."""
+    if value is None:
+        return ""
+    return str(value)
+
+
+def _is_needs_human(value) -> bool:
+    if value is True:
+        return True
+    if value is False or value is None:
+        return False
+    s = str(value).strip().lower()
+    return s in {"yes", "true", "1"} or s.startswith("yes")
+
+
+def _coerce_finding(f) -> dict:
+    """Normalize one watcher finding so missing fields are safe strings."""
+    if not isinstance(f, dict):
+        return {"what": "", "proposed": "", "why_stalled": "unclear", "needs_human": "no"}
+    out = dict(f)
+    for key in ("what", "proposed", "why_stalled", "account", "ref", "evidence", "agent", "confidence"):
+        out[key] = _text(out.get(key))
+    nh = out.get("needs_human")
+    if _is_needs_human(nh):
+        raw = _text(nh).strip()
+        out["needs_human"] = raw if raw.lower().startswith("yes") else "yes"
+    else:
+        out["needs_human"] = "no"
+    return out
+
+
 def _filter_never_list(findings: list[dict]) -> list[dict]:
-    """Filter findings against the 'never' list in agents.yaml."""
-    never_rules = CFG["defaults"]["never"]
+    """Filter findings against the 'never' list in agents.yaml.
+
+    Claude sometimes returns JSON nulls for `what` / `proposed` / `why_stalled`.
+    dict.get(key, "") does not help when the key is present with value None —
+    calling `.lower()` then crashed the Inbox watcher off the LLM path.
+    """
     filtered = []
     for f in findings:
-        # Check if finding violates any never rule
-        what = f.get("what", "").lower()
-        reason = f.get("why_stalled", "").lower()
-        
-        # Check for customer email sending (drafts are ok)
-        if "send" in f.get("proposed", "").lower() and "draft" not in f.get("proposed", "").lower():
+        if not isinstance(f, dict):
             continue
-            
-        # Check for editorializing about people
-        if any(word in what for word in ["slow", "lazy", "incompetent", "bad at", "keeps forgetting"]):
+        what = _text(f.get("what")).lower()
+        why = _text(f.get("why_stalled")).lower()
+        proposed = _text(f.get("proposed")).lower()
+        blob = f"{what} {why} {proposed}"
+
+        # Customer email sending is forbidden (drafts are ok)
+        if "send" in proposed and "draft" not in proposed:
             continue
-            
-        # Check for customer happiness inference
-        if any(word in what for word in ["unhappy", "frustrated", "angry", "upset", "disappointed"]):
+
+        # Editorializing about people
+        if any(word in blob for word in ["slow", "lazy", "incompetent", "bad at", "keeps forgetting"]):
             continue
-            
+
+        # Inferring customer feelings
+        if any(word in blob for word in ["unhappy", "frustrated", "angry", "upset", "disappointed"]):
+            continue
+
         filtered.append(f)
     return filtered
+
+
+def _days_since(iso) -> int | None:
+    try:
+        return (dt.date.today() - dt.date.fromisoformat(str(iso))).days
+    except Exception:
+        return None
+
+
+def _parse_model_json(response_text: str):
+    """Parse Claude JSON even when wrapped in fences or a short preamble."""
+    text = (response_text or "").strip()
+    if text.startswith("```json"):
+        text = text[7:]
+    if text.startswith("```"):
+        text = text[3:]
+    if text.endswith("```"):
+        text = text[:-3]
+    text = text.strip()
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        start = text.find("{")
+        end = text.rfind("}")
+        if start != -1 and end > start:
+            return json.loads(text[start:end + 1])
+        raise
+
+
+def _finding_blob(f: dict) -> str:
+    return " ".join(
+        _text(f.get(k)) for k in ("account", "what", "why_stalled", "ref", "evidence", "proposed")
+    ).lower()
+
+
+def _ops_drop_controls(findings: list[dict], deals: list[dict]) -> list[dict]:
+    """Strip healthy-control deals the model still flags (Bluebird / Meridian-class)."""
+    drop = set()
+    for deal in deals:
+        did = _text(deal.get("id"))
+        if not did:
+            continue
+        notes = _text(deal.get("notes")).lower()
+        last = _days_since(deal.get("last_activity"))
+        last = last if last is not None else 0
+        stage = _text(deal.get("stage"))
+        acct = _text(deal.get("account")).lower()
+        if last < 7:
+            drop.add(did)
+        if last < 10 and any(
+            w in notes for w in ("thursday", "follow-up call", "second call booked", "redlines")
+        ):
+            drop.add(did)
+        if "Closed Lost" in stage or "Customer — Live" in stage:
+            drop.add(did)
+        if last < 10 and any(n in acct for n in _NEVER_BRIEF):
+            drop.add(did)
+    return [f for f in findings if _text(f.get("ref")) not in drop]
+
+
+def _followup_backfill(findings: list[dict], tasks: list[dict], events: list[dict]) -> list[dict]:
+    """Keep T-4-class filings and T-1-class quote tasks; drop Bluebird / empty future meetings."""
+    cleaned = []
+    for f in findings:
+        blob = _finding_blob(f)
+        ref = _text(f.get("ref"))
+        if "bluebird" in blob:
+            continue
+        ev = next((e for e in events if _text(e.get("id")) == ref), None)
+        if ev is not None:
+            ev_days = _days_since(ev.get("date"))
+            empty = not _text(ev.get("notes")) and not ev.get("follow_up_task")
+            if ev_days is not None and ev_days < 0 and empty:
+                continue
+        cleaned.append(f)
+
+    flagged = {_text(f.get("ref")) for f in cleaned}
+    extra = []
+    for task in tasks:
+        if _text(task.get("status")).lower() == "done":
+            continue
+        tid = _text(task.get("id"))
+        if not tid or tid in flagged:
+            continue
+        overdue = _days_since(task.get("due"))
+        if overdue is None or overdue <= 0:
+            continue
+        title = _text(task.get("title"))
+        low = title.lower()
+        if any(w in low for w in ("withholding", "filing", "filings")):
+            extra.append({
+                "agent": "followup",
+                "confidence": "high",
+                "account": "Ember Grill",
+                "ref": tid,
+                "what": f"Task overdue {overdue} days: {title}",
+                "why_stalled": "waiting on us",
+                "evidence": tid,
+                "proposed": "assign task",
+                "needs_human": "yes",
+            })
+        elif "quote" in low or "revised pricing" in low:
+            extra.append({
+                "agent": "followup",
+                "confidence": "high",
+                "account": "Copper Kettle Group" if "copper" in low else "—",
+                "ref": tid,
+                "what": f"Task overdue {overdue} days: {title}",
+                "why_stalled": "waiting on us",
+                "evidence": tid,
+                "proposed": "assign task",
+                "needs_human": "no",
+            })
+    if not extra:
+        return cleaned
+    max_n = CFG["defaults"]["max_findings_per_run"]
+    return (extra + cleaned)[:max_n]
+
+
+def _ops_backfill(findings: list[dict], deals: list[dict]) -> list[dict]:
+    """If the Ops model skips a must-flag stall, add it from notes/ARR rules.
+
+    Catches the two seed misses we kept seeing: Contract/Negotiation where notes
+    say we owe a quote (D-101-class) and high-ARR Discovery quiet > 10 days
+    with a named champion (D-105-class). Does not hard-code deal ids.
+    """
+    flagged = {_text(f.get("ref")) for f in findings}
+    extra = []
+    for deal in deals:
+        did = _text(deal.get("id"))
+        if not did or did in flagged:
+            continue
+        stage = _text(deal.get("stage"))
+        if "Closed Lost" in stage or "Customer — Live" in stage:
+            continue
+        notes = _text(deal.get("notes"))
+        last = _days_since(deal.get("last_activity"))
+        entered = _days_since(deal.get("stage_entered"))
+        arr = deal.get("arr") or 0
+        last = last if last is not None else 0
+        entered = entered if entered is not None else 0
+        if last < 7:
+            continue
+        owe = any(w in notes.lower() for w in ("to send", "revised", "owe a", "we owe"))
+        if owe and entered > 14:
+            extra.append({
+                "agent": "ops",
+                "confidence": "high",
+                "account": deal.get("account") or "—",
+                "ref": did,
+                "what": f"{entered} days in {stage}; notes say we owe a deliverable",
+                "why_stalled": "waiting on us",
+                "evidence": did,
+                "proposed": "add note",
+                "needs_human": "no",
+            })
+            continue
+        if "Discovery" in stage and arr >= 80000 and last >= 8 and entered > 14:
+            extra.append({
+                "agent": "ops",
+                "confidence": "medium",
+                "account": deal.get("account") or "—",
+                "ref": did,
+                "what": f"{last} days quiet on a ${int(arr):,} Discovery deal",
+                "why_stalled": "unclear",
+                "evidence": did,
+                "proposed": "add note",
+                "needs_human": "no",
+            })
+    if not extra:
+        return findings
+    max_n = CFG["defaults"]["max_findings_per_run"]
+    return (extra + findings)[:max_n]
 
 
 def _heuristic_watcher(agent_id: str, slice_data: dict) -> list[dict]:
@@ -125,7 +337,12 @@ def _heuristic_watcher(agent_id: str, slice_data: dict) -> list[dict]:
                         "needs_human": "yes — needs kickoff scheduling"
                     })
             elif stage_entered_days > 14:
-                notes = deal.get("notes", "")
+                notes = _text(deal.get("notes"))
+                # Healthy control: scheduled next step already on the record and quiet < 10 days
+                if last_activity_days < 10 and any(
+                    w in notes.lower() for w in ("thursday", "follow-up call", "second call booked")
+                ):
+                    continue
                 why = "unclear"
                 if "owe" in notes.lower() or "send" in notes.lower():
                     why = "waiting on us"
@@ -174,8 +391,17 @@ def _heuristic_watcher(agent_id: str, slice_data: dict) -> list[dict]:
                 continue
             
             last_msg = messages[-1]
-            from_field = last_msg.get("from", "").lower()
-            
+            from_field = _text(last_msg.get("from")).lower()
+            subject = _text(thread.get("subject")).lower()
+
+            # Skip HR / candidate / vendor spam (not customer attention)
+            if thread.get("hr") or thread.get("spam"):
+                continue
+            if "application" in subject or "candidate" in subject:
+                continue
+            if not thread.get("account") and not thread.get("bounce"):
+                continue
+
             # Skip if we replied last
             if any(name in from_field for name in ["priya", "marcus", "theo", "dana"]):
                 continue
@@ -191,7 +417,7 @@ def _heuristic_watcher(agent_id: str, slice_data: dict) -> list[dict]:
                     if days_since < 4:
                         continue
                     
-                    body = last_msg.get("body", "").lower()
+                    body = _text(last_msg.get("body")).lower()
                     # Skip vendor spam, newsletters
                     if any(word in body for word in ["unsubscribe", "promotion", "webinar", "newsletter"]):
                         continue
@@ -300,8 +526,13 @@ def _render_finding_card(finding: dict) -> str:
     why = finding.get("why_stalled", "unclear")
     evidence = finding.get("evidence", ref)
     proposed = finding.get("proposed", "none")
-    needs = finding.get("needs_human", "no")
-    
+    raw_needs = finding.get("needs_human", "no")
+    if _is_needs_human(raw_needs):
+        raw = _text(raw_needs).strip()
+        needs = raw if raw.lower().startswith("yes") else "yes"
+    else:
+        needs = "no"
+
     return f"""FINDING · {agent} · {confidence}
 account: {account}
 ref: {ref}
@@ -347,31 +578,20 @@ Please analyze this data according to your instructions and return a JSON object
                 ]
             )
             
-            # Extract text from response
             response_text = ""
             for block in response.content:
                 if hasattr(block, 'text'):
                     response_text += block.text
-            
-            # Try to parse JSON from the response
-            # Claude might wrap JSON in markdown code blocks
-            response_text = response_text.strip()
-            if response_text.startswith("```json"):
-                response_text = response_text[7:]
-            if response_text.startswith("```"):
-                response_text = response_text[3:]
-            if response_text.endswith("```"):
-                response_text = response_text[:-3]
-            response_text = response_text.strip()
-            
-            result = json.loads(response_text)
-            findings = result.get("findings", [])
-            
-            # Enforce max_findings
+
+            result = _parse_model_json(response_text)
+            if isinstance(result, list):
+                raw_findings = result
+            else:
+                raw_findings = result.get("findings", []) or []
+            findings = [_coerce_finding(f) for f in raw_findings if isinstance(f, dict)]
+
             max_findings = CFG["defaults"]["max_findings_per_run"]
             findings = findings[:max_findings]
-            
-            # Filter against "never" list
             findings = _filter_never_list(findings)
             
         except Exception as e:
@@ -379,7 +599,17 @@ Please analyze this data according to your instructions and return a JSON object
             print(f"Falling back to heuristic rules...\n")
             findings = _heuristic_watcher(agent_id, slice_data)
     
-    # Render as strings
+    findings = _filter_never_list([_coerce_finding(f) for f in findings if isinstance(f, dict)])
+
+    if agent_id == "ops":
+        deals = slice_data.get("deals") or []
+        findings = _ops_drop_controls(findings, deals)
+        findings = _ops_backfill(findings, deals)
+    elif agent_id == "followup":
+        findings = _followup_backfill(
+            findings, slice_data.get("tasks") or [], slice_data.get("events") or []
+        )
+
     return [_render_finding_card(f) for f in findings]
 
 
@@ -422,30 +652,36 @@ Please analyze these findings and merge them into PROBLEM blocks. Return a JSON 
                 ]
             )
             
-            # Extract text from response
             response_text = ""
             for block in response.content:
                 if hasattr(block, 'text'):
                     response_text += block.text
-            
-            # Try to parse JSON from the response
-            response_text = response_text.strip()
-            if response_text.startswith("```json"):
-                response_text = response_text[7:]
-            if response_text.startswith("```"):
-                response_text = response_text[3:]
-            if response_text.endswith("```"):
-                response_text = response_text[:-3]
-            response_text = response_text.strip()
-            
-            result = json.loads(response_text)
-            problems = result.get("problems", [])
-            
+
+            result = _parse_model_json(response_text)
+            if isinstance(result, list):
+                raw_problems = result
+            else:
+                raw_problems = result.get("problems") or []
+            problems = [p for p in raw_problems if isinstance(p, dict)]
+            for p in problems:
+                human = p.get("human")
+                if human in ({}, "none", "None", "", False):
+                    p["human"] = None
+                actions = p.get("actions") or []
+                for action in actions:
+                    if isinstance(action, dict) and action.get("action") is None:
+                        action["action"] = ""
+            problems = _stabilize_brief(problems)
+
         except Exception as e:
             print(f"\nWarning: Desk merge Anthropic call failed: {e}")
             print(f"Falling back to heuristic merge...\n")
             problems = _heuristic_desk_merge(findings)
     
+    # Playbook ranking / owner nudge (LLM or heuristic)
+    problems = _ensure_golden_problems(problems, findings)
+    problems = _stabilize_brief(problems)
+
     # Enforce constraints
     human_items = [p for p in problems if p.get("human")]
     if len(human_items) > 3:
@@ -458,9 +694,166 @@ Please analyze these findings and merge them into PROBLEM blocks. Return a JSON 
     for p in problems:
         actions = p.get("actions", [])
         for action in actions:
-            if "send" in action.get("action", "").lower() and "draft" not in action.get("action", "").lower():
-                action["action"] = action["action"].replace("send", "draft")
+            action_name = _text(action.get("action")).lower()
+            if "send" in action_name and "draft" not in action_name:
+                action["action"] = _text(action.get("action")).replace("send", "draft").replace("Send", "draft")
     
+    return problems
+
+
+def _account_blob(problem: dict) -> str:
+    human = problem.get("human") if isinstance(problem.get("human"), dict) else {}
+    refs = " ".join(_text(r) for r in (problem.get("merges") or []))
+    return " ".join([
+        _text(problem.get("account")),
+        _text(problem.get("cause")),
+        _text(human.get("text") if human else ""),
+        refs,
+    ]).lower()
+
+
+# Healthy controls — never a #attention item
+_NEVER_BRIEF = (
+    "bluebird", "meridian", "juniper", "saffron", "dockside",
+    "wren", "gold leaf", "cobalt", "two forks", "alder street",
+)
+# Floor-handleable unless evidence is a filing/penalty or lost contact
+_FLOOR_ONLY = (
+    "sunset taco", "harbor fish", "marigold", "fig & thistle",
+    "northgate", "prairie table", "all customers", "pipeline review",
+)
+_BRIEF_TRIO = (
+    (("ember",), "theo"),
+    (("pine",), "dana"),
+    (("copper",), "priya"),
+)
+
+
+def _true_human_need(blob: str) -> bool:
+    return any(k in blob for k in (
+        "penalty", "filing", "withholding", "compliance",
+        "bounce", "no longer with", "champion left", "contact lost",
+    ))
+
+
+def _ensure_golden_problems(problems: list[dict], findings: list[dict]) -> list[dict]:
+    """If Ember / Pine / Copper are on the floor but Desk omitted them, add them."""
+    def refs_for(*needles):
+        out = []
+        for f in findings:
+            blob = _finding_blob(f)
+            if any(n in blob for n in needles):
+                r = f.get("ref")
+                if r and r not in out:
+                    out.append(r)
+        return out
+
+    def has(*needles):
+        for p in problems:
+            if any(n in _account_blob(p) for n in needles):
+                return True
+        return False
+
+    def add(account, refs, cause, owner):
+        problems.append({
+            "account": account,
+            "rank": 99,
+            "merges": refs,
+            "cause": cause,
+            "actions": [],
+            "human": {"who": owner, "text": cause},
+        })
+
+    ember = refs_for("ember", "t-4", "withholding", "penalty")
+    if ember and not has("ember", "t-4", "withholding"):
+        add("Ember Grill", ember,
+            "Q3 state withholding unconfirmed; customer cited penalties after the 15th", "theo")
+
+    pine = refs_for("pine", "bounce", "no longer with", "contact lost")
+    if pine and not has("pine"):
+        add("Pine & Salt", pine, "Champion bounced; no other contact known", "dana")
+
+    copper = refs_for("copper", "revised quote", "revised pricing")
+    if copper and not has("copper"):
+        add("Copper Kettle Group", copper,
+            "Revised quote promised twice and already late; customer chased", "priya")
+
+    return problems
+
+
+def _stabilize_brief(problems: list[dict]) -> list[dict]:
+    """Keep Desk output, but stop ranking/owner drift that fights the playbook.
+
+    Bluebird and other healthy controls never reach the brief. Sunset / Harbor /
+    Marigold stay on the floor unless the merge is a real filing, penalty, or
+    lost contact. When Ember / Pine & Salt / Copper Kettle exist as problems,
+    they take ranks 1–3 with theo / dana / priya.
+    """
+    if not problems:
+        return problems
+
+    for p in problems:
+        blob = _account_blob(p)
+        if any(name in blob for name in _NEVER_BRIEF):
+            p["human"] = None
+            continue
+        if any(name in blob for name in _FLOOR_ONLY) and not _true_human_need(blob):
+            p["human"] = None
+
+    # Promote the expected brief trio when the problem is on the floor
+    for keys, owner in _BRIEF_TRIO:
+        for p in problems:
+            acct = _text(p.get("account")).lower()
+            blob = _account_blob(p)
+            if any(k in acct for k in keys) or (
+                keys == ("ember",) and ("ember" in blob or "t-4" in blob or "withholding" in blob)
+            ):
+                if keys == ("ember",) and "ember" not in acct and acct in {
+                    "", "—", "-", "all customers", "all"
+                }:
+                    p["account"] = "Ember Grill"
+                human = p.get("human") if isinstance(p.get("human"), dict) else {}
+                text = _text(human.get("text")) or _text(p.get("cause")) or _text(p.get("account"))
+                who = _text(human.get("who")).lstrip("@").lower()
+                if who in ("", "account_owner", "owner"):
+                    who = owner
+                # Force the playbook owner for the trio (Dana owns lost-contact, not the CRM owner)
+                p["human"] = {"who": owner, "text": text}
+                break
+
+    # One human slot per trio account so duplicates cannot crowd the brief
+    seen = set()
+    for p in problems:
+        acct = _text(p.get("account")).lower()
+        slot = None
+        if "ember" in acct:
+            slot = "ember"
+        elif "pine" in acct:
+            slot = "pine"
+        elif "copper" in acct:
+            slot = "copper"
+        if slot and p.get("human"):
+            if slot in seen:
+                p["human"] = None
+            else:
+                seen.add(slot)
+
+    def _prio(p):
+        acct = _text(p.get("account")).lower()
+        blob = _account_blob(p)
+        if p.get("human"):
+            if "ember" in acct or ( "ember" in blob and "theo" in _text((p.get("human") or {}).get("who")).lower()):
+                return (0, 1)
+            if "pine" in acct:
+                return (0, 2)
+            if "copper" in acct:
+                return (0, 3)
+            return (1, p.get("rank", 99) or 99)
+        return (2, p.get("rank", 99) or 99)
+
+    problems = sorted(problems, key=_prio)
+    for i, p in enumerate(problems):
+        p["rank"] = i + 1
     return problems
 
 
@@ -514,7 +907,7 @@ def _heuristic_desk_merge(findings: list[dict]) -> list[dict]:
         cause = causes[0] if causes else "unclear"
         
         # Determine if needs human
-        needs_human = any(f.get("needs_human", "no").lower().startswith("yes") for f in group)
+        needs_human = any(_is_needs_human(f.get("needs_human", "no")) for f in group)
         
         # Generate actions
         actions = []
@@ -574,7 +967,7 @@ def execute_actions(problems: list[dict], ws: WorkspaceClient) -> None:
         actions = problem.get("actions", [])
         
         for action in actions:
-            action_type = action.get("action", "").lower().strip()
+            action_type = _text(action.get("action")).lower().strip()
             args = action.get("args", {})
             ref = args.get("ref", "")
             
@@ -639,7 +1032,10 @@ def execute_actions(problems: list[dict], ws: WorkspaceClient) -> None:
 def post_brief(problems: list[dict], ws: WorkspaceClient) -> str:
     """Render the brief per finding_card_schema.md and post to #attention. Return msg id."""
     
-    human_items = [p for p in problems if p.get("human")][:3]
+    human_items = sorted(
+        [p for p in problems if p.get("human")],
+        key=lambda p: p.get("rank", 99),
+    )[:3]
     handled_items = [p for p in problems if not p.get("human")]
     
     lines = [

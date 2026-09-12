@@ -1,0 +1,205 @@
+
+──── POST → #agents-floor ────
+FINDING · ops · high
+account: Copper Kettle Group
+ref: D-101
+what: 23 days in Contract; notes say we owe a deliverable
+why_stalled: waiting on us
+evidence: D-101
+proposed: add note
+needs_human: no
+
+──── POST → #agents-floor ────
+FINDING · ops · medium
+account: Pine & Salt
+ref: D-105
+what: 12 days quiet on a $120,000 Discovery deal
+why_stalled: unclear
+evidence: D-105
+proposed: add note
+needs_human: no
+
+──── POST → #agents-floor ────
+FINDING · ops · high
+account: Marigold Diners
+ref: D-102
+what: Closed Won deal with no kickoff_date. Signed 31 days ago (2026-08-12), notes say 'Kickoff to be scheduled.'
+why_stalled: never started
+evidence: kickoff_date field is null. Stage entered 2026-08-12. Notes: 'Signed. Kickoff to be scheduled.'
+proposed: Desk to ping Marcus to schedule kickoff with Marigold Diners.
+needs_human: no
+
+──── POST → #agents-floor ────
+FINDING · ops · high
+account: Harbor Fish Co.
+ref: D-104
+what: Negotiation stage deal with close date 3 months in the past (2026-06-12). Stage age 61 days, last activity 40 days ago (2026-08-03).
+why_stalled: unclear
+evidence: Close date was 2026-06-12, now 2026-09-12. Stage entered 2026-07-13, last activity 2026-08-03. Notes empty.
+proposed: Desk to ask Priya for status update on Harbor Fish Co.
+needs_human: no
+
+──── POST → #agents-floor ────
+FINDING · ops · medium
+account: Sunset Taco
+ref: D-103
+what: Proposal stage deal quiet for 35 days. Last activity 2026-08-08, stage entered same day.
+why_stalled: unclear
+evidence: Stage entered 2026-08-08, last activity same day. Notes empty. Stage age 35 days.
+proposed: Desk to ask Priya about Sunset Taco status.
+needs_human: no
+
+──── POST → #agents-floor ────
+FINDING · ops · medium
+account: Northgate Brewing
+ref: D-112
+what: Discovery stage deal quiet for 27 days. Notes say waiting on customer's ops director availability.
+why_stalled: waiting on customer
+evidence: Last activity 2026-08-16, stage entered same day. Notes: 'Intro call done. Waiting on their ops director's availability.'
+proposed: Desk to check with Priya if we should re-engage Northgate Brewing.
+needs_human: no
+
+──── POST → #agents-floor ────
+FINDING · ops · medium
+account: Fig & Thistle
+ref: D-116
+what: Implementation blocked, waiting on customer to send employee roster. Last activity 30 days ago (2026-08-13).
+why_stalled: waiting on customer
+evidence: Notes: 'Kickoff done. Blocked: customer has not sent employee roster.' Last activity 2026-08-13.
+proposed: Desk to check with Marcus on re-engaging Fig & Thistle for roster.
+needs_human: no
+
+──── POST → #agents-floor ────
+FINDING · ops · medium
+account: Prairie Table
+ref: D-118
+what: Negotiation stage deal quiet for 11 days. Stage age 22 days, last activity 2026-09-01.
+why_stalled: unclear
+evidence: Stage entered 2026-08-21, last activity 2026-09-01. Notes empty. Quiet for 11 days at Negotiation stage.
+proposed: Desk to ask Priya about Prairie Table next steps.
+needs_human: no
+
+──── POST → #agents-floor ────
+FINDING · Inbox · high
+account: Ember Grill
+ref: M-3
+what: Q3 state withholding filing confirmation — customer says accountant has not seen it filed, "penalties start accruing after the 15th"
+why_stalled: waiting on us
+evidence: Customer wrote 2026-09-08, unanswered 4 business days. Quote: "Penalties start accruing after the 15th."
+proposed: none
+needs_human: yes
+
+──── POST → #agents-floor ────
+FINDING · Inbox · high
+account: Pine & Salt
+ref: M-4
+what: Bounce — jordan.reyes@pineandsalt.example is no longer with the company
+why_stalled: contact lost
+evidence: Mailer-daemon 2026-08-31: "jordan.reyes@pineandsalt.example is no longer with the company. Please contact your account representative for an alternate contact."
+proposed: none
+needs_human: yes
+
+──── POST → #agents-floor ────
+FINDING · Inbox · low
+account: Harbor Fish Co.
+ref: M-11
+what: Customer said "still discussing internally" on August 3, now 40 days silent
+why_stalled: waiting on customer
+evidence: Priya checked in 2026-08-02. Customer replied 2026-08-03: "Still discussing internally. Will let you know." No contact since, 40 days elapsed.
+proposed: Hi — following up on the proposal from early August. Let me know if you'd like to revisit it or if timing has shifted. Happy to answer any questions that came up in your internal discussions.
+needs_human: no
+
+──── POST → #agents-floor ────
+FINDING · followup · high
+account: Copper Kettle Group
+ref: T-1
+what: Task overdue 19 days: Send Copper Kettle revised quote (3-location discount)
+why_stalled: waiting on us
+evidence: T-1
+proposed: assign task
+needs_human: no
+
+──── POST → #agents-floor ────
+FINDING · Follow-up · 0.95
+account: Ember Grill
+ref: T-4
+what: Q3 state withholding filing confirmation overdue by 8 days. Task due 2026-09-04, still open. Theo noted on 2026-09-04 that Ember Grill's accountant is particular about this.
+why_stalled: waiting on us
+evidence: Task T-4 'Confirm Q3 state withholding filings — all customers' due 2026-09-04, owner theo, status open. Chat ops-team-7 from theo on 2026-09-04: 'Reminder to self: check the Ember Grill filing confirmation, their accountant is particular.'
+proposed: Theo to confirm Ember Grill Q3 state withholding filing by end of day 2026-09-13.
+needs_human: yes
+
+──── POST → #agents-floor ────
+FINDING · Follow-up · 0.97
+account: Marigold Diners
+ref: T-2
+what: Kickoff meeting scheduling overdue by 23 days. Marcus promised to book it the week of 2026-08-13, then said on 2026-09-02 it would be next week. Task due 2026-08-20, still open. Discovery notes from 2026-08-08 say they need go-live by mid-Oct.
+why_stalled: waiting on us
+evidence: Task T-2 'Schedule Marigold Diners kickoff' due 2026-08-20, owner marcus, status open, linked to D-102. Chat ops-team-0 from marcus on 2026-08-13: 'I'll book their kickoff this week.' Chat ops-team-6 from marcus on 2026-09-02: 'Marigold kickoff will have to be next week.' Event E-2 notes: 'Need go-live by mid-Oct.'
+proposed: Marcus to schedule Marigold Diners kickoff meeting by 2026-09-15 with urgency given mid-October go-live deadline.
+needs_human: yes
+
+──── POST → #agents-floor ────
+FINDING · Follow-up · 0.92
+account: Harbor Fish
+ref: T-3
+what: Harbor Fish close date update overdue by 25 days. Priya said on 2026-08-18 she would update once she heard back. Task due 2026-08-18, still open.
+why_stalled: unclear
+evidence: Task T-3 'Update Harbor Fish close date' due 2026-08-18, owner priya, status open, linked to D-104. Chat sales-3 from priya on 2026-08-18: 'Harbor Fish is still 'discussing internally'. I'll update the close date once I hear back.'
+proposed: Priya to chase Harbor Fish for decision and update close date in CRM.
+needs_human: yes
+
+──── POST → #agents-floor ────
+FINDING · Follow-up · 0.88
+account: Copper Kettle
+ref: E-1
+what: Pricing review meeting on 2026-08-22 (21 days ago) has no notes and no follow-up task. However, task T-1 for sending the revised quote exists and is overdue.
+why_stalled: waiting on us
+evidence: Event E-1 'Copper Kettle — pricing review' on 2026-08-22, attendees priya and lena.ortiz@copperkettle.example, notes empty, no follow_up_task. Related to overdue task T-1.
+proposed: Priya to add meeting notes to E-1 documenting what was discussed.
+needs_human: no
+
+──── POST → #agents-floor ────
+FINDING · Follow-up · 0.85
+account: Ember Grill
+ref: E-3
+what: Quarterly check-in with Ember Grill yesterday 2026-09-11 has no notes and no follow-up task.
+why_stalled: unclear
+evidence: Event E-3 'Ember Grill — quarterly check-in' on 2026-09-11, attendees theo and rosa.delgado@embergrill.example, notes empty, no follow_up_task.
+proposed: Theo to add notes from yesterday's Ember Grill quarterly check-in.
+needs_human: no
+
+──── TASK → dana: Follow up: Copper Kettle Group (due 2026-09-14)
+
+──── TASK → dana: Follow up: Marigold Diners (due 2026-09-14)
+
+──── POST → #agents-floor ────
+@priya — Close date 2026-06-12 is 3 months past, customer said 'still discussing internally' on 2026-08-03, now 40 days silent
+
+──── POST → #agents-floor ────
+@priya — Proposal stage 35 days quiet since 2026-08-08, no customer signal of pause
+
+──── POST → #agents-floor ────
+@priya — Discovery 27 days quiet, notes say waiting on customer's ops director availability since 2026-08-16
+
+──── TASK → dana: Follow up: Fig & Thistle (due 2026-09-14)
+
+──── POST → #agents-floor ────
+@priya — Negotiation 11 days quiet since 2026-09-01, 22 days in stage, notes empty
+
+──── POST → #attention ────
+Attention brief · 2026-09-12 · 3 item(s) need a person · everything else handled on the floor
+
+1. @theo — Ember Grill: Q3 state withholding filing not confirmed, customer says accountant has not seen it filed and penalties start after Sept 15, task overdue 8 days, Theo's quarterly check-in yesterday has no notes
+   Evidence: M-3, T-4, E-3
+
+2. @dana — Pine & Salt ($120,000): Champion jordan.reyes@pineandsalt.example bounced 2026-08-31 with 'no longer with the company', $120k Discovery deal 12 days quiet, no other contact known
+   Evidence: D-105, M-4
+
+3. @priya — Copper Kettle Group ($84,000): Revised quote with 3-location discount promised in pricing review 2026-08-22, task overdue 19 days, deal 23 days in Contract waiting on deliverable
+   Evidence: D-101, T-1, E-1
+   Ready: draft_reply, assign_task
+
+Handled without you: Marigold Diners, Harbor Fish Co., Sunset Taco, Northgate Brewing, Fig & Thistle + 1 more
+
+Reply in this thread and I'll record it.

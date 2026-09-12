@@ -2,7 +2,16 @@
 
 Always-on agent teammates that do the attention job for a workspace: three narrow watchers, one Desk that merges and decides, an agent-only channel where they coordinate, and a three-item brief for humans.
 
-**What's prep and what's the build.** Everything in this kit is preparation you're allowed to do the night before: the fictional company, the roster, prompt drafts, a mock client so you can develop offline, the demo script and submission text. The actual agent logic — `floor/round.py`'s five TODO functions and the MCP mapping in `floor/client.py` — is the day's build. Say so in the README you publish; judges respect it.
+**What's prep and what's the build.** Everything in this kit is preparation you're allowed to do the night before: the fictional company, the roster, prompt drafts, a mock client so you can develop offline, the demo script and submission text. 
+
+**The day's build:** The actual agent logic in `floor/round.py` — specifically the five core functions that were implemented during the hackathon:
+1. `run_watcher` — calls LLM with playbook + data slice, returns FINDING cards (rung 1)
+2. `run_desk_merge` — Desk merges findings into PROBLEM blocks (rung 2)
+3. `post_brief` — renders and posts the 3-item brief to #attention (rung 2)
+4. `execute_actions` — closed allowlist action execution with safety refusal (rung 3)
+5. `reply_loop` — human reply processing (rung 4 stub)
+
+Plus the MCP mapping in `floor/client.py` for live workspace integration.
 
 Nothing in here is from any real company. Brightline Payroll, its people and customers are invented.
 
@@ -34,11 +43,19 @@ demo/
 
 ```bash
 pip install -r requirements.txt
-python -m floor.seed          # prints counts: 20 deals, 12 threads, 9 tasks, 9 events, 26 chat messages
-python -m floor.round         # raises NotImplementedError at run_watcher — that's your first line of code tomorrow
+python3 -m floor.seed          # prints counts: 20 deals, 12 threads, 9 tasks, 9 events, 26 chat messages
+python3 -m floor.round         # runs complete mock round with heuristic fallback (no API key needed)
 ```
 
-`MockClient` prints every post, draft, note and task to the terminal as it happens, so you can build and watch the whole round with zero credentials. Check output against `seed/expected_findings.md`. If Bluebird gets flagged, the prompt is too eager — the controls are there to catch exactly that.
+**Mock vs Live:**
+- **Mock mode (default):** `python3 -m floor.round` — runs entirely offline using `MockClient` with in-memory seed data. All posts, drafts, notes, and tasks print to terminal. Perfect for development and testing.
+- **Live mode:** `python3 -m floor.round --live` — connects to your Ambiguous workspace via MCP. Requires `AMBIGUOUS_API_KEY` or `AMBIGUOUS_TOKEN` environment variable.
+
+**API Key behavior:**
+- **With Anthropic API key:** Set `ANTHROPIC_API_KEY` environment variable. The system calls Claude to analyze data and generate findings/decisions.
+- **Without API key (CI/demo fallback):** The system uses built-in heuristic rules to generate plausible findings. This ensures `python3 -m floor.round` always produces terminal output even without credentials.
+
+`MockClient` prints every action as it happens, so you can watch the entire round unfold with zero credentials. Check output against `seed/expected_findings.md`. If Bluebird (D-106) gets flagged, the logic is too eager — the controls are there to catch exactly that.
 
 ---
 
@@ -48,7 +65,7 @@ python -m floor.round         # raises NotImplementedError at run_watcher — th
 2. **Automations app.** Open it and see whether it can run an agent on a schedule or on an event. If it can, it replaces Trigger.dev for the morning run (still mention Trigger.dev if you use it anywhere).
 3. **MCP.** Follow the workspace's agent connection guide. From any MCP client, **list the tools** and prove the eight calls in `client.py`: read a channel, post a message, list CRM records, add a note / set a field, list mail threads, create a draft, list tasks / create a task, list calendar events. Write the real tool names next to each method in `McpClient`. This is the step most likely to eat time — do it tonight, not at 11:15.
 4. **Seed the workspace.** Once the mapping exists, extend `seed.py`'s live branch to call the create methods and load the company. If MCP is not cooperating by bedtime, seed by hand tomorrow morning: the CSVs are small, and the demo only needs Copper Kettle, Marigold, Ember Grill and Pine & Salt to be perfect.
-5. **Model access.** Starter credits and repo come from the organisers before the event — confirm the model name and put it in `agents.yaml › defaults.model`.
+5. **Model access.** Set up `ANTHROPIC_API_KEY` environment variable for Claude API access. Put the model name in `agents.yaml › defaults.model` (currently `claude-3-5-sonnet-20241022`).
 6. **Budget.** Free tier is 1,000 AI actions/month. A full round is roughly 20–40 actions. Test on the mock; hit the live workspace only for end-to-end checks and the recording.
 7. **Sleep.** Seriously. Four hours of building on no sleep loses to three hours on eight.
 

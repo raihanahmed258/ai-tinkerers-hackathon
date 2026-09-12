@@ -2,18 +2,18 @@
 
 One take, one voice, exactly 2:00, entirely inside the Ambiguous workspace. Record at 15:15. Submit by 16:00.
 
-**Where this choreography comes from.** Use the completed 17:13–17:18 UTC live round documented in `LIVE_ROUND_REPORT.md`. It contains the full protocol and a one-item Ember Grill brief. Its channel posts do not prove model provenance. `MOCK_ROUND_VALIDATE3.txt` is model-backed but predates the protocol.
+**Where this choreography comes from.** Use the final Sonnet 5 round completed
+from 15:22–15:27 EDT (19:22–19:27 UTC), documented in
+`LIVE_ROUND_REPORT.md`. It contains the full protocol and a clean three-item
+brief.
 
-**Pre-roll blocker.** Open the existing 17:13 UTC round. Confirm it ends
-with `—— Round 2026-09-12 17:13 · done ——` and links brief
-`3c3d3750-29fc-4aed-9930-015caa11731c`. Do not spend credits or workspace
-writes on a warm rerun. API keys and agent tokens are irrelevant when recording
-an already completed round.
+**Pre-roll blocker.** Open the 15:22 EDT round. Confirm it ends with
+`—— Round 2026-09-12 15:22 · done ——` and links brief
+`d9aff913-9c63-48bf-895b-9ccc6021cd04`. Do not rerun it.
 
 Browser setup: one window, two tabs, `#agents-floor` first and `#attention`
-second. Nothing else open. Zoom until the attention brief's stale `Ready:` and
-reply-promise lines are below the fold. At this zoom, floor protocol posts may
-need to appear one at a time. Do Not Disturb on. Quit Mail, Slack, and Messages.
+second. Nothing else open. Set zoom so one full card is readable. Do Not
+Disturb on. Quit Mail, Slack, and Messages.
 
 ---
 
@@ -28,10 +28,11 @@ Label text below is exactly what the code posts. `<stamp>` is the round's date a
 | Time | Scroll to | Hold | Cursor rests on |
 |---|---|---|---|
 | 0:00–0:03 | `—— Round <stamp> · pass 1 ——` | 3 s | the second line, `Watchers posting FINDING cards here.` |
-| 0:03–0:17 | drift down through the eight `FINDING · Follow-up · …` cards | 14 s total, 2 s on the first card | one visible `ref:` line |
+| 0:03–0:10 | one `FINDING · Ops · …` card | 7 s | its `ref:` line |
+| 0:10–0:17 | one `FINDING · Follow-up · …` card | 7 s | its `ref:` line |
 
-The observed round has no Ops or Inbox findings. Do not pause on older cards
-from another round and do not claim that all three lanes found something.
+The observed round has seven Ops and eight Follow-up findings. Inbox is empty
+and correctly posts none.
 
 ### Beat 2 · 0:17–0:33 · Pass two · `#agents-floor`
 
@@ -87,23 +88,16 @@ The chains are not meant to be read; the repeating labels are the point. Set the
 
 | Time | Scroll to | Hold | Cursor rests on |
 |---|---|---|---|
-| 1:27–1:28 | click the pre-zoomed `#attention` tab | 1 s | nothing |
-| 1:28–1:31 | `Attention brief · <date>` at the top of the frame | 3 s | the `1 item(s) need a person` line |
-| 1:31–1:40 | `1. @theo — Ember Grill` | 9 s | the item's first line |
-| 1:40–1:50 | the Ember Grill cause | 10 s | its cause; do not scroll |
+| 1:27–1:28 | click the `#attention` tab | 1 s | nothing |
+| 1:28–1:31 | `Attention brief · <date>` | 3 s | `3 item(s) need a person` |
+| 1:31–1:46 | move through the three owner and evidence lines | 15 s | Theo, Dana, then Priya |
+| 1:46–1:50 | `Handled without you: …` | 4 s | that line |
 
-This brief has one item. One is valid because the cap is **at most** three. The
-old live message also contains `Ready: assign_task` and a reply promise below
-the evidence. Both predate the cleanup and are not demo claims. Zoom the
-`#attention` tab before recording so those lower lines stay below the fold.
-Do not edit the historical message and do not scroll down.
+The clean brief has three items: Ember Grill, Pine & Salt, and Copper Kettle
+Group. It has no `Ready:` line and no reply promise.
 
-If the viewport cannot hide them, use this fallback after the normal beat:
-"Those last two lines are from the earlier runner. The cleaned code removed
-planned-action labels and disables reply promises; DONE and BLOCKED are the
-execution truth." Do not rerun the round to clean the screenshot.
-
-The beat 6 Say cell names no account, no owner, and no dollar amount. Do not add them. The cursor on the owner lines is the receipt for "Each item names an owner".
+The beat 6 Say cell names the three visible owner/account pairs. Do not add
+dollar amounts.
 
 ### Beat 7 · 1:50–2:00 · Tagline · `#agents-floor`
 
@@ -118,30 +112,29 @@ The tab keeps the beat 5 scroll position, so this chain is one short upward scro
 
 ## 2. Voice-over script
 
-Rate: 2.5 words per second. Cap: 300 words. This script is 236 words,
-94.4 seconds spoken inside 120 seconds, with 25.6 seconds of slack for scrolling
+Rate: 2.5 words per second. Cap: 300 words. This script is 239 words,
+95.6 seconds spoken inside 120 seconds, with 24.4 seconds of slack for scrolling
 and tab switches.
 
 **Source of truth.** The Say cells below are copied word for word from the seven rows of `demo/script.md` in the working tree at reconciliation time. If Part A's review changes that file, change this section to match and re-run the counts. One label caution: `demo/script.md` writes the blocked draft post as `BLOCKED · Inbox · draft reply`; the code prints `BLOCKED · Inbox · draft`, because `execute_actions` passes the action type `draft` to `_post_blocked`. The `ASSIGN` label is `ASSIGN · Inbox → draft reply`. This runbook uses the labels the code prints.
 
 | Beat | Range | Length | Words | Spoken | Slack |
 |---|---|---|---|---|---|
-| 1 · Pass one | 0:00–0:17 | 17 s | 38 | 15.2 s | 1.8 s |
+| 1 · Pass one | 0:00–0:17 | 17 s | 40 | 16.0 s | 1.0 s |
 | 2 · Pass two | 0:17–0:33 | 16 s | 35 | 14.0 s | 2.0 s |
 | 3 · Refusal theater | 0:33–0:52 | 19 s | 37 | 14.8 s | 4.2 s |
 | 4 · One approved chain | 0:52–1:10 | 18 s | 35 | 14.0 s | 4.0 s |
 | 5 · Remaining chains to work done | 1:10–1:27 | 17 s | 38 | 15.2 s | 1.8 s |
-| 6 · The brief | 1:27–1:50 | 23 s | 38 | 15.2 s | 7.8 s |
+| 6 · The brief | 1:27–1:50 | 23 s | 39 | 15.6 s | 7.4 s |
 | 7 · Tagline | 1:50–2:00 | 10 s | 15 | 6.0 s | 4.0 s |
-| **Total** | **0:00–2:00** | **120 s** | **236** | **94.4 s** | **25.6 s** |
+| **Total** | **0:00–2:00** | **120 s** | **239** | **95.6 s** | **24.4 s** |
 
-Beat 6 is the one to rehearse twice. It is the brief reveal: land on the single
-Ember Grill owner line and keep the stale `Ready:` and reply-promise lines below
-the fold.
+Beat 6 is the one to rehearse twice. Move cleanly through all three owner lines
+and their evidence.
 
-### Beat 1 · 0:00–0:17 · 38 words
+### Beat 1 · 0:00–0:17 · 40 words
 
-> This is Brightline Payroll. One stuck customer can leave signals in different tools. Three lanes inspect separate slices: Ops reads CRM, Inbox reads mail, and Follow-up reads tasks, calendar, and selected chat. This live round found follow-up evidence.
+> This is Brightline Payroll. One stuck customer can leave signals in different tools. Three lanes inspect separate slices: Ops reads CRM, Inbox reads mail, and Follow-up reads tasks, calendar, and selected chat. This live round found evidence across two lanes.
 
 The three lanes are code in `floor/router.py`. Only Follow-up produced findings
 in this round, and the narration says that explicitly.
@@ -170,13 +163,12 @@ recording shows approved and refused, so those are the only verdicts named.
 
 This cell claims nothing about what got done, so it stands unchanged under section 3, case A2. The receipt for "A BLOCKED receipt is not hidden" is any `BLOCKED · …` post that has been in frame in the take: the two refusal-theater posts in beat 3, and live, any `BLOCKED · Inbox · draft` that passes through in this beat.
 
-### Beat 6 · 1:27–1:50 · 38 words
+### Beat 6 · 1:27–1:50 · 39 words
 
-> Humans get one brief in attention, capped at three items in code. This round needs one human: Theo, for Ember Grill. The floor already showed the evidence, refusals, and receipts. Nothing was sent. No stage or calendar changed.
+> Humans get one brief in attention, capped at three items in code. This round routes Ember Grill to Theo, Pine and Salt to Dana, and Copper Kettle to Priya, each with evidence attached. Nothing was sent. No stage changed.
 
-The cell names exactly what is on screen: Theo and Ember Grill. It says the
-brief is capped at three, not that three items must appear. Evidence and safety
-receipts appeared earlier in the take.
+The cell names exactly what is on screen. Evidence and safety receipts appeared
+earlier in the take.
 
 ### Beat 7 · 1:50–2:00 · 15 words
 

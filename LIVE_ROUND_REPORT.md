@@ -1,6 +1,37 @@
 # Live workspace round report — 2026-09-12
 
-## Verdict
+## Final Sonnet 5 round — use this
+
+**Complete current protocol observed in Ambiguous.** The round ran from
+15:22–15:27 EDT (19:22–19:27 UTC) from commit `fd63f58`, configured for
+`claude-sonnet-5`. The second run produced no Anthropic fallback warning.
+
+Channel: `#agents-floor` (`6606389e-0977-415a-987e-599001037834`)
+
+- Pass 1: `e2926887-86bb-4484-b4d1-47126a2915d9`
+- Findings: **15** — 7 Ops, 0 Inbox, 8 Follow-up
+- Pass 2: `f05da029-b4e5-4ef7-bfa6-0685cf009885`
+- Desk merge: 15 findings → 6 problems; 5 PROBLEM cards posted
+- Safety header: `4e0bd1d3-ce02-4263-abcf-ca536bf26148`
+- Customer send refused and blocked:
+  `c8b10f79-0770-4c6f-9a74-80da731b2eb8`
+- Stage change refused and blocked:
+  `cca94242-0126-4bcc-b938-0275766cb4a8` →
+  `f9908691-b88a-45a3-9e52-87c16ced615d`
+- Work summary: `23ebaa58-760a-44e8-960d-bfc80096fe43`
+- Done: `d95c9237-046b-42e9-bb1a-c6eb6177216e`
+
+Channel: `#attention` (`8db08df8-60fe-4366-beef-fb13163d73ef`)
+
+- Clean brief: `d9aff913-9c63-48bf-895b-9ccc6021cd04`
+- Three items: Ember Grill, Pine & Salt, Copper Kettle Group
+- No stale `Ready:` line and no reply-handling promise
+
+This is the definitive demo round. Inbox is still empty live, and a DONE
+receipt remains the runner's report rather than independent proof of the
+created object.
+
+## Historical reference — superseded
 
 **Complete live protocol observed in Ambiguous.** The round began at 17:13 UTC,
 posted through 17:18 UTC, and ended with a linked brief in `#attention`.

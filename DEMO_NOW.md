@@ -1,7 +1,7 @@
 # Demo now
 
-Use the completed Ambiguous round from **2026-09-12 17:13–17:18 UTC**. Do not
-run another round, spend model credits, seed data, or edit the historical posts.
+Use the completed Sonnet 5 Ambiguous round from **15:22–15:27 Ottawa time**
+(19:22–19:27 UTC). Do not run another round.
 
 ## Five-minute setup
 
@@ -9,21 +9,14 @@ run another round, spend model credits, seed data, or edit the historical posts.
    browser could not reuse your authenticated session, so this is the only UI
    preflight that could not be completed remotely.
 2. Open `#agents-floor` and find
-   `—— Round 2026-09-12 17:13 · pass 1 ——`.
+   `—— Round 2026-09-12 15:22 · pass 1 ——`.
 3. Confirm that round ends with
-   `—— Round 2026-09-12 17:13 · done ——`.
-4. Open `#attention` in a second tab and find the one-item brief beginning
-   `1. @theo — Ember Grill`.
-5. Zoom the browser until the old `Ready:` and
-   `Reply in this thread and I'll record it` lines are below the fold. Those
-   lines predate the cleanup and are not demo claims.
-6. Record from [`demo/script.md`](demo/script.md). It is a 2:00 shot list with
-   236 spoken words and 25.6 seconds of scrolling slack.
-
-If the two stale lines cannot be kept below the fold, do not improvise or hide
-the fact. Say: “Those last two lines are from the earlier runner. The cleaned
-code removed planned-action labels and disables reply promises; the DONE and
-BLOCKED receipts are the execution truth.”
+   `—— Round 2026-09-12 15:22 · done ——`.
+4. Open `#attention` in a second tab and find the newest clean brief. It has
+   Ember Grill, Pine & Salt, and Copper Kettle Group, with no `Ready:` or reply
+   promise.
+5. Record from [`demo/script.md`](demo/script.md). It is a 2:00 shot list with
+   239 spoken words and 24.4 seconds of scrolling slack.
 
 ## The story
 
@@ -33,16 +26,17 @@ then every proposed action crosses a visible gate:
 
 `ASSIGN → VERIFIER · approved | refused → DONE | BLOCKED`
 
-The live round shows eight Follow-up findings, five merged problems, two
-deliberately unsafe requests refused, approved task and question chains, blocked
-unresolvable drafts, and one human item for Ember Grill.
+The final round shows 15 findings across Ops and Follow-up, a Desk merge, two
+deliberately unsafe requests refused, approved work, and a clean three-item
+human brief.
 
 ## Say these boundaries plainly
 
 - This is fictional Brightline Payroll data.
-- The live protocol completed; the channel does not prove which model path ran.
-- Live Inbox is empty, so unresolved drafts fail closed as `BLOCKED`.
-- The brief is capped at three; this round correctly contains one item.
+- The final live protocol completed from the Sonnet 5 configuration with no
+  fallback warning.
+- Live Inbox is empty, so it correctly produced no findings.
+- The brief is capped at three and this round contains three.
 - The brief order is a hand-written playbook prior, not learned ranking.
 - Timeline and reply handling are implemented, opt-in, and not demonstrated.
 - Scheduling is documented but not running.

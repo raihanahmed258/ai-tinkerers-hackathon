@@ -14,9 +14,13 @@ Every answer here agrees with [claim_sheet.md](claim_sheet.md). Historical count
 
 ### 1. Has the current protocol ever been validated with a real model?
 
-**Headline:** A complete live workspace round exists; model provenance is not independently proven.
+**Headline:** The current protocol completed live with the Sonnet 5
+configuration.
 
-The 17:13–17:18 UTC Ambiguous round completed pass 1, merged eight findings into five problems, ran both safety refusals, completed approved and blocked worker chains, and linked a one-item Ember Grill brief. `LIVE_ROUND_REPORT.md` records its message ids. There is no matching runner log proving whether that round used Claude, so call it a live protocol run—not a Claude-validated run. `MOCK_ROUND_VALIDATE3.txt` is model-backed but predates the current protocol.
+The final 15:22–15:27 EDT Ambiguous round ran from commit `fd63f58`, configured
+for `claude-sonnet-5`, with no fallback warning. It posted 15 findings, merged
+them into six problems, ran both safety refusals, completed approved work, and
+linked a clean three-item brief. `LIVE_ROUND_REPORT.md` records its message ids.
 
 ### 2. Is the Verifier a real agent, and what happens without its token?
 
@@ -58,7 +62,8 @@ Four layers refuse the dangerous writes: `_normalize_action_type` at `floor/roun
 
 ## Do not say
 
-- Do not call the live protocol round Claude-validated. Say: "The workspace protocol completed live; model provenance is not independently logged" (H1).
+- Do not claim the older 17:13 UTC round used Claude. Use the final 15:22 EDT
+  Sonnet 5 round.
 - Do not say VERIFIER posts as Desk as a given. Say: "It posts as Desk when the Desk token is set; without it the round fails closed" (H2).
 - Do not say Inbox posted findings unless one is on screen, and do not show a seeded Mail draft as agent output (H3).
 - Do not say the reply loop works. Say: "Implemented behind a flag, off by default, not demonstrated" (H5).

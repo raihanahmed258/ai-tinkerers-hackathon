@@ -2,28 +2,31 @@
 
 Every other file in `demo/` must agree with this sheet. If a doc and this sheet disagree, the sheet wins and the doc is wrong.
 
-Live source: the completed 17:13–17:18 UTC round documented in
-[`../LIVE_ROUND_REPORT.md`](../LIVE_ROUND_REPORT.md). It has eight Follow-up
-findings, five merged problems, both refusal chains, approved and blocked work,
-and a one-item Ember Grill brief. Its channel posts do not prove model
-provenance.
+Live source: the final Sonnet 5 round completed from 15:22–15:27 EDT
+(19:22–19:27 UTC), documented in
+[`../LIVE_ROUND_REPORT.md`](../LIVE_ROUND_REPORT.md). It has 15 findings across
+Ops and Follow-up, five posted problem cards, both refusal chains, approved
+work, and a clean three-item brief.
 
 ## WILL CLAIM LIVE
 
-- **Hard watcher lanes.** `#agents-floor`, label `FINDING · Follow-up`, each card carrying a `ref:` line (a seed id on the mock, a live id or chat message live). Lanes are code in `floor/router.py` `slice_for`, not an LLM. `FINDING · Ops` and `FINDING · Inbox` are claimed only if a judge can see one on screen: the live CRM has no stage-entered date and the live inbox is empty, so both blocks can be absent. Cards carry their own seat name only if the three watcher tokens are set; otherwise every post is signed as Desk.
+- **Hard watcher lanes.** `#agents-floor` shows 7 `FINDING · Ops` and 8
+  `FINDING · Follow-up` cards, each carrying a `ref:` line. Inbox correctly
+  posts none because the live inbox is empty. Lanes are code in
+  `floor/router.py`, not an LLM.
 - **Desk merge.** `#agents-floor`, label `PROBLEM · <account> · rank N`, with a `merges:` line of evidence ids. Up to five cards, sliced in code; five on the mock, three live-shaped. Point only at a card with an account name.
 - **Refusal theater, when the demo flag is enabled, before any worker acts.** Run with `--safety-demo`; `#agents-floor` then shows `ASSIGN · Inbox → send email to customer`, `VERIFIER · refused`, `BLOCKED`, followed by the equivalent refused `set_field` chain. Normal rounds omit this synthetic work.
 - **The Tier 1 handoff.** `#agents-floor`: at least one chain of `ASSIGN`, `VERIFIER · approved`, `DONE`. Live-shaped that chain is `ASSIGN · Follow-up → assign task`, `VERIFIER · approved`, `DONE · Follow-up · assign_task`; an `add_note` chain exists only if Ops posted a finding. The VERIFIER verdict posts as Desk, which requires `AMBIGUOUS_TOKEN_DESK` before the round; without it the floor freezes on the first refusal-theater `ASSIGN` and no brief is posted.
 - **Fail-closed receipts.** `#agents-floor`: recording mode shows the two
   refusal-theater `BLOCKED` receipts. A `BLOCKED · Inbox · draft` receipt appears
-  only when a draft was planned and no live thread resolved. The observed live
-  round has these blocked draft receipts; do not generalize that to every run.
+  only when a draft was planned and no live thread resolved.
 - **One human brief.** `#attention`, one post headed `Attention brief · <date>`, line `N item(s) need a person` with N at most 3, each item naming an owner and an `Evidence:` line of ids.
 - **No send, no stage, no calendar.** The client has no send method and no calendar write; `set_field` is never approved for any field; a stage write raises `PermissionError` in `floor/client.py`.
 
 ## WILL NOT CLAIM
 
-- A model-validated run of the current protocol. The complete live round proves the workspace protocol, but there is no matching runner log proving whether it used Claude.
+- Any claim that the historical 17:13 UTC round used Claude. The final 15:22
+  EDT run used the Sonnet 5 configuration and produced no fallback warning.
 - A live Inbox finding or a live Mail draft as agent output. The three drafts in the workspace were placed during seeding.
 - The reply loop as working. It is implemented in `floor/reply_handler.py` behind `FLOOR_REPLY_LOOP`, off by default, and the brief does not promise reply handling while it is off.
 - The account timeline as demonstrated. It is merged but opt-in (`--timeline`), uses ignored runtime state under `.floor/`, and is kept off for the recording. The `rank=None` fix is present on current `main`.

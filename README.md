@@ -127,7 +127,12 @@ Ops is at ceiling and the brief lands in the right order. Inbox recall is the kn
 
 The committed model-backed validation artifact predates the current Tier 1 protocol. It produced 17 finding cards, 21 floor posts, 3 tasks, and a three-item brief ranked Ember Grill, Pine & Salt, then Copper Kettle. Use [`MOCK_ROUND_VALIDATE3.txt`](MOCK_ROUND_VALIDATE3.txt) only as evidence for that earlier run, not for the later `ASSIGN → VERIFIER → DONE/BLOCKED` protocol. A current no-model smoke test produces more audit posts and intentionally scores AMBER on ranking.
 
-A complete Tier 1 round is also visible in the live Ambiguous workspace. It ran from 17:13–17:18 UTC on 2026-09-12: 8 Follow-up findings, 5 merged problems, both safety refusals, approved and blocked worker chains, a done marker, and a linked one-item Ember Grill brief. [`LIVE_ROUND_REPORT.md`](LIVE_ROUND_REPORT.md) records the message ids and limits. The workspace posts do not independently prove which model path produced that round.
+A complete current Tier 1 round is visible in the live Ambiguous workspace. It
+ran from 15:22–15:27 EDT on 2026-09-12 using the Sonnet 5 configuration: 15
+findings across Ops and Follow-up, five posted problem cards, both safety
+refusals, approved work, a done marker, and a clean three-item brief.
+[`LIVE_ROUND_REPORT.md`](LIVE_ROUND_REPORT.md) records the message ids and
+limits.
 
 Being straight about the edges, because a demo that overclaims is worse than one that concedes:
 

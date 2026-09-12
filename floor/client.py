@@ -36,6 +36,7 @@ class WorkspaceClient(Protocol):
     # mail
     def list_threads(self) -> list[dict]: ...
     def create_draft(self, thread_id: str, body: str) -> str: ...
+    def resolve_mail_id(self, ref: str | None) -> str | None: ...
     # tasks + calendar
     def list_tasks(self) -> list[dict]: ...
     def create_task(self, title: str, owner: str, due: str, linked: str | None = None) -> str: ...
@@ -104,6 +105,23 @@ class MockClient:
         if self.verbose: print(f"\n──── DRAFT (not sent) → {thread_id} ────\n{body}")
         return draft_id
 
+    def resolve_mail_id(self, ref: str | None) -> str | None:
+        """Map seed M-* / exact id → thread id. None if unresolved (caller must BLOCK, not invent)."""
+        r = (ref or "").strip()
+        if not r:
+            return None
+        by_id = {str(th.get("id")): th for th in self.threads if th.get("id") is not None}
+        if r in by_id:
+            return r
+        if r.upper().startswith("M-"):
+            needle = r.upper()
+            for th in self.threads:
+                blob = f"{th.get('id')} {th.get('subject')} {th.get('ref')}".upper()
+                if needle in blob:
+                    tid = th.get("id")
+                    return str(tid) if tid is not None else None
+        return None  # never passthrough unverified UUID / junk
+
     # ---- tasks + calendar ----
     def list_tasks(self) -> list[dict]:
         return [dict(x) for x in self.tasks]
@@ -118,12 +136,59 @@ class MockClient:
     def list_events(self, days_back: int = 45, days_forward: int = 30) -> list[dict]:
         return [dict(x) for x in self.events]
 
+    def as_agent(self, agent_id=None):
+        from contextlib import nullcontext
+        return nullcontext()
+
 
 DEFAULT_MCP_URL = "https://app.ambiguous.ai/mcp"
+
+
+
 _SECRET_PATHS = (
     Path("/home/box/agent-data/box-secrets.json"),
     Path("/home/box/sand-data/box-secrets.json"),
 )
+AGENT_TOKEN_ENV = {
+    "ops": ("AMBIGUOUS_TOKEN_OPS", "AMBIGUOUS_API_KEY_OPS"),
+    "inbox": ("AMBIGUOUS_TOKEN_INBOX", "AMBIGUOUS_API_KEY_INBOX"),
+    "followup": ("AMBIGUOUS_TOKEN_FOLLOWUP", "AMBIGUOUS_API_KEY_FOLLOWUP", "AMBIGUOUS_TOKEN_FOLLOW_UP"),
+    "desk": ("AMBIGUOUS_TOKEN_DESK", "AMBIGUOUS_API_KEY_DESK"),
+    "verifier": ("AMBIGUOUS_TOKEN_VERIFIER", "AMBIGUOUS_API_KEY_VERIFIER"),
+    "closer": ("AMBIGUOUS_TOKEN_CLOSER", "AMBIGUOUS_API_KEY_CLOSER"),
+}
+
+
+def resolve_agent_token(agent_id: str | None) -> str | None:
+    """Optional per-agent Ambiguous API key so posts appear as Ops/Inbox/Follow-up/Desk.
+
+    Checks env, then box-secrets.json `card` (secret-request lands there).
+    Never print the value.
+    """
+    if not agent_id:
+        return None
+    key = agent_id.strip().lower().replace("-", "_")
+    if key in ("follow_up", "follow-up"):
+        key = "followup"
+    names = AGENT_TOKEN_ENV.get(key, ())
+    for name in names:
+        val = (os.environ.get(name) or "").strip()
+        if val:
+            return val
+    for path in _SECRET_PATHS:
+        try:
+            blob = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            continue
+        card = blob.get("card") if isinstance(blob, dict) else None
+        if not isinstance(card, dict):
+            continue
+        for name in names:
+            val = card.get(name)
+            if isinstance(val, str) and val.strip():
+                return val.strip()
+    return None
+
 CHANNEL_IDS = {
     "agents-floor": "6606389e-0977-415a-987e-599001037834",
     "attention": "8db08df8-60fe-4366-beef-fb13163d73ef",
@@ -250,7 +315,46 @@ class McpClient:
     def __init__(self, server_url: str | None = None, token: str | None = None):
         self.server_url = (server_url or os.environ.get("AMBIGUOUS_MCP_URL") or DEFAULT_MCP_URL).rstrip("/")
         self.token = resolve_ambiguous_token(token)
+        self._default_token = self.token
         self._channels: dict[str, str] = dict(CHANNEL_IDS)
+
+    def as_agent(self, agent_id: str | None):
+        """Context manager: temporarily authenticate as a named agent when its token is set.
+
+        Specialists without their own token fall back to Desk. Verifier/Closer never fall
+        back to the human/default token (fail closed with a loud error) — GAP A / Safety.
+        Other specialists may still use the default token if Desk is also unset.
+        """
+        from contextlib import contextmanager
+
+        @contextmanager
+        def _cm():
+            key = ""
+            if agent_id:
+                key = agent_id.strip().lower().replace("-", "_")
+                if key in ("follow_up", "follow-up"):
+                    key = "followup"
+            tok = resolve_agent_token(agent_id)
+            if not tok and key in AGENT_TOKEN_ENV and key != "desk":
+                tok = resolve_agent_token("desk")
+            if not tok:
+                if key in ("verifier", "closer"):
+                    msg = (
+                        f"as_agent({key!r}): no {key} token and no Desk token — "
+                        f"refusing human/default fallback (set AMBIGUOUS_TOKEN_{key.upper()} "
+                        f"or AMBIGUOUS_TOKEN_DESK)"
+                    )
+                    print("\n──── SAFETY · " + msg)
+                    raise PermissionError(msg)
+                tok = self._default_token
+            prev = self.token
+            self.token = tok
+            try:
+                yield self
+            finally:
+                self.token = prev
+
+        return _cm()
 
     # ---- transport ----
     async def _acall(self, name: str, arguments: dict | None = None):
@@ -350,6 +454,9 @@ class McpClient:
         self._tool("log_activity", {"type": "note", "deal_id": deal_id, "body": note, "subject": "agent note"})
 
     def set_deal_field(self, deal_id: str, field: str, value) -> None:
+        blocked = {"stage", "stage_id", "close_date", "pipeline", "pipeline_id", "owner_id", "status"}
+        if str(field).lower() in blocked:
+            raise PermissionError(f"refused set_deal_field({field}): blocked by Floor safety policy")
         if field in ("notes", "note"):
             self.add_deal_note(deal_id, str(value))
             return
@@ -414,10 +521,51 @@ class McpClient:
             })
         return threads
 
+    def resolve_mail_id(self, ref: str | None) -> str | None:
+        """Live UUID or seed M-* → inbox thread id. Never invent; empty inbox → None (SEED MAIL path)."""
+        r = (ref or "").strip()
+        if not r:
+            return None
+        try:
+            threads = self.list_threads()
+        except Exception:
+            threads = []
+        by_id = {str(th.get("id")): th for th in threads if th.get("id")}
+        if r in by_id:
+            return r
+        if r.upper().startswith("M-"):
+            needle = r.upper()
+            for th in threads:
+                blob = f"{th.get('id')} {th.get('subject')} {th.get('ref')} {th.get('account')}".upper()
+                if needle in blob:
+                    tid = th.get("id")
+                    return str(tid) if tid else None
+            return None  # live inbox gap / SEED MAIL chat-only — do not invent a UUID
+        if _looks_uuid(r):
+            if r in by_id:
+                return r
+            try:
+                full = self._tool("get_mail_thread", {"thread_id": r})
+            except Exception:
+                return None
+            if isinstance(full, dict) and (
+                full.get("id") or full.get("thread_id") or full.get("messages") or full.get("emails")
+            ):
+                return str(full.get("thread_id") or full.get("id") or r)
+            return None
+        return None
+
     def create_draft(self, thread_id: str, body: str) -> str:
+        """Draft only. Requires a resolved live thread UUID, or empty → standalone draft (no send)."""
         args = {"body_markdown": body, "body_text": body}
-        if thread_id:
-            args["thread_id"] = thread_id
+        tid = (thread_id or "").strip()
+        if tid:
+            if not _looks_uuid(tid):
+                raise ValueError(
+                    f"create_draft requires a live thread UUID after resolve_mail_id "
+                    f"(got {tid[:40]!r}); BLOCK instead of inventing"
+                )
+            args["thread_id"] = tid
         created = self._tool("create_draft_email", args)
         if isinstance(created, dict):
             return str(created.get("id") or created.get("draft_id") or "")

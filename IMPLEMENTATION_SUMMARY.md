@@ -99,7 +99,7 @@ python3 -m floor.round --live
 
 ## Pull Request
 
-**[PR #1: Implement core agent logic for The Floor hackathon system](https://github.com/raihanahmed258/the-floor/pull/1)**
+**[PR #1: Implement core agent logic for The Floor hackathon system](https://github.com/raihanahmed258/ai-tinkerers-hackathon/pull/1)**
 
 Branch: `cursor/floor-round-implementation-747f`
 Status: Ready for review

@@ -1,7 +1,7 @@
 # The Floor: portal submission (paste-ready)
 
 Event: AI Tinkerers Ottawa, "Agents, Everywhere", 2026-09-12
-Repo: https://github.com/raihanahmed258/the-floor
+Repo: https://github.com/raihanahmed258/ai-tinkerers-hackathon
 
 ---
 

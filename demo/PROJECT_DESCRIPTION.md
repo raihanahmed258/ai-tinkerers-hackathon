@@ -1,7 +1,7 @@
 # The Floor — project description
 
 **Title:** The Floor — always-on teammates that do the attention job  
-**Repo:** https://github.com/raihanahmed258/the-floor  
+**Repo:** https://github.com/raihanahmed258/ai-tinkerers-hackathon  
 **Event:** AI Tinkerers Ottawa — Agents, Everywhere (Sept 2026)
 
 ---

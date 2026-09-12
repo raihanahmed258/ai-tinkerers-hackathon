@@ -28,6 +28,7 @@ except Exception:
 
 from .client import MockClient, WorkspaceClient, resolve_agent_token
 from .router import slice_for
+from .timeline import get_default_store
 
 ROOT = Path(__file__).resolve().parent.parent
 CFG = yaml.safe_load((ROOT / "agents.yaml").read_text(encoding="utf-8"))
@@ -69,6 +70,17 @@ def _coerce_finding(f) -> dict:
     else:
         out["needs_human"] = "no"
     return out
+
+
+def _rank_sort_key(problem: dict) -> int:
+    """Sort key for problem rank. Missing/None/unparseable ranks sort last (99)."""
+    r = problem.get("rank") if isinstance(problem, dict) else None
+    if r is None or r == "":
+        return 99
+    try:
+        return int(r)
+    except (TypeError, ValueError):
+        return 99
 
 
 def _filter_never_list(findings: list[dict]) -> list[dict]:
@@ -626,6 +638,8 @@ def run_desk_merge(cards: list[str], ws: WorkspaceClient) -> list[dict]:
     {account, rank, merges:[refs], cause, actions:[{agent, action, args}], human: None|{who, text}}.
     Enforce in code: max 3 human items; nothing customer-facing is 'send'; unclear -> ask, not escalate."""
     
+    timeline = get_default_store()
+    
     # Parse cards back to structured data
     findings = []
     for card in cards:
@@ -690,11 +704,22 @@ Please analyze these findings and merge them into PROBLEM blocks. Return a JSON 
     problems = _ensure_golden_problems(problems, findings)
     problems = _stabilize_brief(problems)
 
+    # Check timeline: downgrade re-escalations for accounts already waiting on humans
+    for p in problems:
+        if not p.get("human"):
+            continue
+        account = _text(p.get("account"))
+        should_escalate, reason = timeline.should_escalate(account)
+        if not should_escalate:
+            # Downgrade to note-only, don't count toward human slots
+            p["human"] = None
+            p["_timeline_skip"] = reason  # Track why for logging
+    
     # Enforce constraints
     human_items = [p for p in problems if p.get("human")]
     if len(human_items) > 3:
         # Keep top 3 by rank, downgrade the rest
-        for p in sorted(problems, key=lambda x: x.get("rank", 99))[3:]:
+        for p in sorted(problems, key=_rank_sort_key)[3:]:
             if p.get("human"):
                 p["human"] = None
     
@@ -705,6 +730,24 @@ Please analyze these findings and merge them into PROBLEM blocks. Return a JSON 
             action_name = _text(action.get("action")).lower()
             if "send" in action_name and "draft" not in action_name:
                 action["action"] = _text(action.get("action")).replace("send", "draft").replace("Send", "draft")
+    
+    # Update timeline for decisions made
+    for p in problems:
+        account = _text(p.get("account"))
+        if not account or account in ("—", "-"):
+            continue
+        
+        # Track drafts
+        for action in p.get("actions", []):
+            if "draft" in _text(action.get("action")).lower():
+                ref = _text(action.get("args", {}).get("ref"))
+                if ref:
+                    timeline.update(account, add_draft=ref)
+        
+        # Track escalations
+        if p.get("human"):
+            cause = _text(p.get("cause")) or _text(p.get("human", {}).get("text"))
+            timeline.update(account, escalate=True, escalation_cause=cause)
     
     return problems
 
@@ -856,8 +899,8 @@ def _stabilize_brief(problems: list[dict]) -> list[dict]:
                 return (0, 2)
             if "copper" in acct:
                 return (0, 3)
-            return (1, p.get("rank", 99) or 99)
-        return (2, p.get("rank", 99) or 99)
+            return (1, _rank_sort_key(p))
+        return (2, _rank_sort_key(p))
 
     problems = sorted(problems, key=_prio)
     for i, p in enumerate(problems):
@@ -964,7 +1007,7 @@ def _heuristic_desk_merge(findings: list[dict]) -> list[dict]:
         rank += 1
     
     # Sort by needs_human first, then by rank
-    problems.sort(key=lambda p: (0 if p.get("human") else 1, p.get("rank", 99)))
+    problems.sort(key=lambda p: (0 if p.get("human") else 1, _rank_sort_key(p)))
     
     # Re-rank
     for i, p in enumerate(problems):
@@ -1436,9 +1479,16 @@ def post_brief(problems: list[dict], ws: WorkspaceClient) -> str:
     
     human_items = sorted(
         [p for p in problems if p.get("human")],
-        key=lambda p: p.get("rank", 99),
+        key=_rank_sort_key,
     )[:3]
     handled_items = [p for p in problems if not p.get("human")]
+    
+    # Log timeline-skipped items
+    skipped_items = [p for p in problems if p.get("_timeline_skip")]
+    for p in skipped_items:
+        account = p.get("account", "—")
+        reason = p.get("_timeline_skip", "")
+        print(f"[Timeline] Skipped re-escalation: {account} — {reason}")
     
     lines = [
         f"Attention brief · {dt.date.today().isoformat()}",
@@ -1538,7 +1588,7 @@ def run_round(ws: WorkspaceClient) -> None:
             f"Posting PROBLEM cards, then the human brief → #{attention.lstrip('#')}.",
         )
         # Show the merge path on the floor (top 5 by rank) so the channel isn't "findings forever"
-        ranked = sorted(problems, key=lambda p: p.get("rank", 99))[:5]
+        ranked = sorted(problems, key=_rank_sort_key)[:5]
         for problem in ranked:
             ws.post(floor, _render_problem_card(problem))
 

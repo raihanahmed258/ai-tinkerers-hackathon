@@ -28,6 +28,7 @@ except Exception:
 
 from .client import MockClient, WorkspaceClient, resolve_agent_token
 from .router import slice_for
+from .timeline import get_default_store
 
 ROOT = Path(__file__).resolve().parent.parent
 CFG = yaml.safe_load((ROOT / "agents.yaml").read_text(encoding="utf-8"))
@@ -626,6 +627,8 @@ def run_desk_merge(cards: list[str], ws: WorkspaceClient) -> list[dict]:
     {account, rank, merges:[refs], cause, actions:[{agent, action, args}], human: None|{who, text}}.
     Enforce in code: max 3 human items; nothing customer-facing is 'send'; unclear -> ask, not escalate."""
     
+    timeline = get_default_store()
+    
     # Parse cards back to structured data
     findings = []
     for card in cards:
@@ -690,6 +693,17 @@ Please analyze these findings and merge them into PROBLEM blocks. Return a JSON 
     problems = _ensure_golden_problems(problems, findings)
     problems = _stabilize_brief(problems)
 
+    # Check timeline: downgrade re-escalations for accounts already waiting on humans
+    for p in problems:
+        if not p.get("human"):
+            continue
+        account = _text(p.get("account"))
+        should_escalate, reason = timeline.should_escalate(account)
+        if not should_escalate:
+            # Downgrade to note-only, don't count toward human slots
+            p["human"] = None
+            p["_timeline_skip"] = reason  # Track why for logging
+    
     # Enforce constraints
     human_items = [p for p in problems if p.get("human")]
     if len(human_items) > 3:
@@ -705,6 +719,24 @@ Please analyze these findings and merge them into PROBLEM blocks. Return a JSON 
             action_name = _text(action.get("action")).lower()
             if "send" in action_name and "draft" not in action_name:
                 action["action"] = _text(action.get("action")).replace("send", "draft").replace("Send", "draft")
+    
+    # Update timeline for decisions made
+    for p in problems:
+        account = _text(p.get("account"))
+        if not account or account in ("—", "-"):
+            continue
+        
+        # Track drafts
+        for action in p.get("actions", []):
+            if "draft" in _text(action.get("action")).lower():
+                ref = _text(action.get("args", {}).get("ref"))
+                if ref:
+                    timeline.update(account, add_draft=ref)
+        
+        # Track escalations
+        if p.get("human"):
+            cause = _text(p.get("cause")) or _text(p.get("human", {}).get("text"))
+            timeline.update(account, escalate=True, escalation_cause=cause)
     
     return problems
 
@@ -1439,6 +1471,13 @@ def post_brief(problems: list[dict], ws: WorkspaceClient) -> str:
         key=lambda p: p.get("rank", 99),
     )[:3]
     handled_items = [p for p in problems if not p.get("human")]
+    
+    # Log timeline-skipped items
+    skipped_items = [p for p in problems if p.get("_timeline_skip")]
+    for p in skipped_items:
+        account = p.get("account", "—")
+        reason = p.get("_timeline_skip", "")
+        print(f"[Timeline] Skipped re-escalation: {account} — {reason}")
     
     lines = [
         f"Attention brief · {dt.date.today().isoformat()}",

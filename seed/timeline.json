@@ -1,0 +1,86 @@
+{
+  "accounts": [
+    {
+      "account": "Pine & Salt",
+      "last_decision": "2026-09-10",
+      "drafts_prepared": [],
+      "waiting_on": "human",
+      "escalated_at": "2026-09-10",
+      "escalation_count": 1,
+      "last_escalation_cause": "Champion bounced; no other contact known"
+    },
+    {
+      "account": "Copper Kettle Group",
+      "last_decision": "2026-09-12",
+      "drafts_prepared": [
+        "M-1"
+      ],
+      "waiting_on": "human",
+      "escalated_at": "2026-09-12",
+      "escalation_count": 1,
+      "last_escalation_cause": "23 days in Contract, 23 days since last activity"
+    },
+    {
+      "account": "Ember Grill",
+      "last_decision": "2026-09-12",
+      "drafts_prepared": [
+        "M-3"
+      ],
+      "waiting_on": "none",
+      "escalated_at": null,
+      "escalation_count": 0,
+      "last_escalation_cause": null
+    },
+    {
+      "account": "T-1",
+      "last_decision": "2026-09-12",
+      "drafts_prepared": [],
+      "waiting_on": "human",
+      "escalated_at": "2026-09-12",
+      "escalation_count": 1,
+      "last_escalation_cause": "Task overdue 19 days: Send Copper Kettle revised quote (3-location discount)"
+    },
+    {
+      "account": "T-4",
+      "last_decision": "2026-09-12",
+      "drafts_prepared": [],
+      "waiting_on": "human",
+      "escalated_at": "2026-09-12",
+      "escalation_count": 1,
+      "last_escalation_cause": "Task overdue 8 days: Confirm Q3 state withholding filings \u2014 all customers"
+    },
+    {
+      "account": "Marigold Diners",
+      "last_decision": "2026-09-12",
+      "drafts_prepared": [
+        "M-2"
+      ],
+      "waiting_on": "none",
+      "escalated_at": null,
+      "escalation_count": 0,
+      "last_escalation_cause": null
+    },
+    {
+      "account": "Harbor Fish Co.",
+      "last_decision": "2026-09-12",
+      "drafts_prepared": [
+        "M-11"
+      ],
+      "waiting_on": "none",
+      "escalated_at": null,
+      "escalation_count": 0,
+      "last_escalation_cause": null
+    },
+    {
+      "account": "Fig & Thistle",
+      "last_decision": "2026-09-12",
+      "drafts_prepared": [
+        "M-9"
+      ],
+      "waiting_on": "none",
+      "escalated_at": null,
+      "escalation_count": 0,
+      "last_escalation_cause": null
+    }
+  ]
+}

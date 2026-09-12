@@ -1,0 +1,20 @@
+[
+  {"id": "E-1", "title": "Copper Kettle — pricing review",       "days": -21, "attendees": ["priya", "lena.ortiz@copperkettle.example"], "notes": "", "follow_up_task": null,
+   "expected_role": "Customer meeting 3 weeks ago with no notes and no follow-up task. Merge with D-101 / M-1 / T-1."},
+  {"id": "E-2", "title": "Marigold Diners — discovery",         "days": -35, "attendees": ["priya", "marcus", "sam.okafor@marigolddiners.example"], "notes": "Current payroll contract ends Oct 31. Need go-live by mid-Oct.", "follow_up_task": "T-2",
+   "expected_role": "Has notes stating the hard deadline. The follow-up task T-2 exists but is overdue. Merge with D-102 / M-2."},
+  {"id": "E-3", "title": "Ember Grill — quarterly check-in",     "days": -1,  "attendees": ["theo", "rosa.delgado@embergrill.example"], "notes": "", "follow_up_task": null,
+   "expected_role": "Yesterday, no notes, no follow-up — and the customer has an open unanswered compliance question (M-3). Strengthens the M-3 escalation."},
+  {"id": "E-4", "title": "Pine & Salt — technical review",       "days": 6,   "attendees": ["priya", "jordan.reyes@pineandsalt.example"], "notes": "Tentative.", "follow_up_task": null,
+   "expected_role": "FUTURE meeting with an attendee who has left the company (M-4 bounce). Follow-up should flag: this meeting will not happen as booked."},
+  {"id": "E-5", "title": "Juniper Hospitality — second call",    "days": 2,   "attendees": ["priya", "it@juniperhospitality.example"], "notes": "SE attending.", "follow_up_task": null,
+   "expected_role": "HEALTHY future meeting — control."},
+  {"id": "E-6", "title": "Bluebird — legal sync",                "days": 3,   "attendees": ["priya", "counsel@bluebirdbakeries.example"], "notes": "", "follow_up_task": null,
+   "expected_role": "HEALTHY future meeting — control."},
+  {"id": "E-7", "title": "Pipeline review",                      "days": -26, "attendees": ["dana", "priya", "marcus"], "notes": "Priya to send Copper Kettle quote Friday. Marcus to book Marigold kickoff.", "follow_up_task": null,
+   "expected_role": "Internal meeting whose notes record two promises — both still unmet. Evidence for the Copper Kettle and Marigold merges."},
+  {"id": "E-8", "title": "Dockside — go-live planning",          "days": -4,  "attendees": ["marcus", "ap@docksideoyster.example"], "notes": "Go-live on the 1st confirmed.", "follow_up_task": null,
+   "expected_role": "HEALTHY — control."},
+  {"id": "E-9", "title": "Meridian Steakhouse — proposal follow-up", "days": 4, "attendees": ["priya", "gm@meridiansteak.example"], "notes": "", "follow_up_task": null,
+   "expected_role": "HEALTHY future meeting — control."}
+]

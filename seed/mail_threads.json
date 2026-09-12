@@ -1,0 +1,118 @@
+[
+  {
+    "id": "M-1", "subject": "Revised pricing for 3 locations?", "account": "Copper Kettle Group", "deal": "D-101",
+    "participants": ["lena.ortiz@copperkettle.example", "priya@brightline.example"],
+    "messages": [
+      {"from": "priya@brightline.example", "days": -24, "body": "Lena — great meeting today. I'll send the revised pricing with the multi-location discount by Friday."},
+      {"from": "lena.ortiz@copperkettle.example", "days": -16, "body": "Hi Priya, just checking on the revised pricing — our board meets on the 30th and I'd like to have it in the pack."},
+      {"from": "lena.ortiz@copperkettle.example", "days": -9, "body": "Following up again. Is the revised quote still coming? Happy to jump on a call if easier."}
+    ],
+    "last_from_customer": true, "unanswered_days": 9,
+    "expected_role": "UNANSWERED 9 days, customer chased twice, board deadline mentioned. Merge with D-101. Inbox drafts a reply; Desk flags the broken promise to Priya."
+  },
+  {
+    "id": "M-2", "subject": "Go-live date for Marigold?", "account": "Marigold Diners", "deal": "D-102",
+    "participants": ["sam.okafor@marigolddiners.example", "marcus@brightline.example"],
+    "messages": [
+      {"from": "marcus@brightline.example", "days": -30, "body": "Sam, welcome aboard! I'll get a kickoff on the calendar this week."},
+      {"from": "sam.okafor@marigolddiners.example", "days": -6, "body": "Hi Marcus — we signed a month ago and haven't heard about a kickoff or go-live date. Our current payroll contract ends Oct 31, so we're getting nervous."}
+    ],
+    "last_from_customer": true, "unanswered_days": 6,
+    "expected_role": "UNANSWERED 6 days, hard deadline Oct 31. Merge with D-102 (no kickoff date) and task T-2. Inbox drafts reply proposing dates; Follow-up assigns Marcus."
+  },
+  {
+    "id": "M-3", "subject": "Q3 tax filing — did the state withholding go out?", "account": "Ember Grill", "deal": "D-107",
+    "participants": ["rosa.delgado@embergrill.example", "support@brightline.example"],
+    "messages": [
+      {"from": "rosa.delgado@embergrill.example", "days": -4, "body": "Hi team, our accountant says the state withholding filing for Q3 hasn't shown up. Can you confirm it was submitted? Penalties start accruing after the 15th."}
+    ],
+    "last_from_customer": true, "unanswered_days": 4,
+    "expected_role": "UNANSWERED 4 days, compliance-sensitive, existing customer, penalty deadline. Escalate to Theo in #attention (top of the brief). Inbox may draft an acknowledgement but a human must confirm the filing."
+  },
+  {
+    "id": "M-4", "subject": "Re: Pine & Salt — evaluation next steps", "account": "Pine & Salt", "deal": "D-105",
+    "participants": ["jordan.reyes@pineandsalt.example", "priya@brightline.example"],
+    "messages": [
+      {"from": "priya@brightline.example", "days": -12, "body": "Jordan — attaching the security questionnaire responses. Shall we book the technical review for next week?"},
+      {"from": "mailer-daemon@pineandsalt.example", "days": -12, "body": "Delivery failed. jordan.reyes@pineandsalt.example is no longer with the company. Please contact your account representative for an alternate contact."}
+    ],
+    "last_from_customer": false, "unanswered_days": 0, "bounce": true,
+    "expected_role": "BOUNCE — champion has left. Nobody else known at the account. This is a real 'needs a human' item: escalate to Dana to find a new contact. Do not draft to a dead address."
+  },
+  {
+    "id": "M-5", "subject": "Redlines — Bluebird MSA", "account": "Bluebird Bakeries", "deal": "D-106",
+    "participants": ["counsel@bluebirdbakeries.example", "priya@brightline.example"],
+    "messages": [
+      {"from": "counsel@bluebirdbakeries.example", "days": -1, "body": "Redlines attached. Mostly the limitation-of-liability clause."},
+      {"from": "priya@brightline.example", "days": -1, "body": "Received, thank you — with our legal now, back to you by Thursday."}
+    ],
+    "last_from_customer": false, "unanswered_days": 0,
+    "expected_role": "HEALTHY — answered same day. Control; must not be flagged."
+  },
+  {
+    "id": "M-6", "subject": "Re: Proposal — Sunset Taco", "account": "Sunset Taco", "deal": "D-103",
+    "participants": ["kim.nguyen@sunsettaco.example", "priya@brightline.example"],
+    "messages": [
+      {"from": "priya@brightline.example", "days": -36, "body": "Kim, proposal attached. Let me know if you'd like to walk through it."},
+      {"from": "kim.nguyen@sunsettaco.example", "days": -34, "body": "Thanks Priya. Honestly we're slammed through the summer season — let's pick this back up in Q4. I'll reach out in October."},
+      {"from": "priya@brightline.example", "days": -34, "body": "Completely understand. I'll check in the first week of October."}
+    ],
+    "last_from_customer": false, "unanswered_days": 0,
+    "expected_role": "ANSWERED. Explains D-103's stall: customer paused until Q4. Desk should classify D-103 as customer-paused and set a revisit, not escalate. Tests judgment."
+  },
+  {
+    "id": "M-7", "subject": "Your exclusive offer: 40% off LED signage!", "account": null, "deal": null,
+    "participants": ["promo@brightsignsdeals.example", "priya@brightline.example"],
+    "messages": [{"from": "promo@brightsignsdeals.example", "days": -3, "body": "Light up your storefront with our fall LED sale..."}],
+    "last_from_customer": false, "unanswered_days": 3, "spam": true,
+    "expected_role": "VENDOR SPAM. Must be ignored. Tests that 'unanswered' alone is not a finding."
+  },
+  {
+    "id": "M-8", "subject": "Following up on my application — Payroll Specialist", "account": null, "deal": null,
+    "participants": ["a.chen.candidate@example.com", "dana@brightline.example"],
+    "messages": [{"from": "a.chen.candidate@example.com", "days": -5, "body": "Hi Dana, I interviewed two weeks ago and wanted to follow up on next steps."}],
+    "last_from_customer": false, "unanswered_days": 5, "hr": true,
+    "expected_role": "HR / candidate thread. Not a customer-attention item. At most: route to the right person quietly; do not put in the customer brief."
+  },
+  {
+    "id": "M-9", "subject": "Employee roster for Fig & Thistle setup", "account": "Fig & Thistle", "deal": "D-116",
+    "participants": ["owner@figandthistle.example", "marcus@brightline.example"],
+    "messages": [
+      {"from": "marcus@brightline.example", "days": -38, "body": "To finish setup I need the employee roster (names, roles, pay rates). Template attached."},
+      {"from": "marcus@brightline.example", "days": -24, "body": "Gentle nudge on the roster — we can't map payroll without it."},
+      {"from": "owner@figandthistle.example", "days": -23, "body": "So sorry — chaos here. Will get it to you next week."}
+    ],
+    "last_from_customer": true, "unanswered_days": 23,
+    "expected_role": "WAITING ON CUSTOMER — they promised 'next week' 23 days ago. Reason is known (D-116 notes). Inbox drafts a friendly third nudge; no escalation."
+  },
+  {
+    "id": "M-10", "subject": "Juniper — technical questions before our second call", "account": "Juniper Hospitality", "deal": "D-108",
+    "participants": ["it@juniperhospitality.example", "priya@brightline.example"],
+    "messages": [
+      {"from": "it@juniperhospitality.example", "days": -4, "body": "Three questions on SSO and data residency ahead of Thursday."},
+      {"from": "priya@brightline.example", "days": -3, "body": "Answers inline below, and I've added our solutions engineer to Thursday's call."}
+    ],
+    "last_from_customer": false, "unanswered_days": 0,
+    "expected_role": "HEALTHY — control."
+  },
+  {
+    "id": "M-11", "subject": "Harbor Fish — where did we land?", "account": "Harbor Fish Co.", "deal": "D-104",
+    "participants": ["gm@harborfishco.example", "priya@brightline.example"],
+    "messages": [
+      {"from": "priya@brightline.example", "days": -41, "body": "Checking in — any update from your side on the proposal?"},
+      {"from": "gm@harborfishco.example", "days": -40, "body": "Still discussing internally. Will let you know."}
+    ],
+    "last_from_customer": true, "unanswered_days": 40,
+    "expected_role": "Customer went quiet 40 days ago after a non-answer; deal's close date is 3 months stale (D-104). Combined signal: Ops asks Priya to update/close; Inbox may draft a light check-in. Low priority."
+  },
+  {
+    "id": "M-12", "subject": "Invoice #4471 — Dockside", "account": "Dockside Oyster Bar", "deal": "D-111",
+    "participants": ["ap@docksideoyster.example", "billing@brightline.example"],
+    "messages": [
+      {"from": "ap@docksideoyster.example", "days": -2, "body": "Can you resend invoice #4471 as a PDF? Our system rejected the link."},
+      {"from": "billing@brightline.example", "days": -2, "body": "Attached — apologies for the trouble."}
+    ],
+    "last_from_customer": false, "unanswered_days": 0,
+    "expected_role": "HEALTHY — control."
+  }
+]

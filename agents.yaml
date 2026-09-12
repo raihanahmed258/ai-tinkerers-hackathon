@@ -1,0 +1,75 @@
+# The roster. One runner, four personas. Each agent = a name, a queue to watch, a playbook,
+# the apps it may touch, and what it is NEVER allowed to do.
+# Working title for the project: "The Floor" (rename freely — just don't call it Grok Bot).
+
+defaults:
+  model: gpt-5.1            # whatever the OpenAI starter kit provides; any tool-calling model works
+  max_findings_per_run: 8   # caps chatter and protects the 1,000-action monthly budget
+  never:
+    - send any email or message to a customer (drafts only)
+    - modify a human's document or calendar event
+    - editorialise about a person ("Priya is slow") — state facts and dates only
+    - infer that a customer is unhappy — report what they wrote, not how they feel
+    - loop: a round has exactly two passes; if something is unresolved it goes in the brief
+
+channels:
+  floor: agents-floor       # agent-only working channel; humans may read
+  humans: attention         # human-facing; one brief per round
+
+agents:
+  - id: ops
+    name: Ops
+    watches: CRM
+    tools: [crm.list_deals, crm.get_deal, crm.add_note, crm.set_field, chat.post, chat.read]
+    playbook: prompts/watcher_ops.md
+    signals:
+      - stage_age_days > 14 on an open deal
+      - close_date in the past on an open deal
+      - Closed Won with no kickoff_date
+      - last_activity_days > 14 at Negotiation or Contract
+    controls: never flag deals with activity in the last 7 days, or closed deals
+
+  - id: inbox
+    name: Inbox
+    watches: Mail
+    tools: [mail.list_threads, mail.get_thread, mail.create_draft, chat.post, chat.read]
+    playbook: prompts/watcher_inbox.md
+    signals:
+      - last message from a customer, unanswered > 3 business days
+      - customer chased more than once
+      - bounce / "no longer with the company"
+      - deadline or penalty mentioned in the customer's text
+    controls: ignore vendor promotions, newsletters, HR/candidate threads, and threads where we replied last
+
+  - id: followup
+    name: Follow-up
+    watches: Calendar + Tasks + chat promises
+    tools: [calendar.list_events, tasks.list, tasks.create, tasks.assign, chat.read, chat.post]
+    playbook: prompts/watcher_followup.md
+    signals:
+      - customer meeting > 7 days ago with no notes and no follow-up task
+      - task overdue
+      - a promise in chat ("I'll X by Friday") with no matching completed task or later message
+      - future meeting whose attendee is known to have left
+    controls: done tasks, tasks not yet due, healthy future meetings, internal chit-chat
+
+  - id: desk
+    name: Desk
+    watches: the floor
+    tools: [chat.read, chat.post, chat.reply_in_thread, crm.add_note, crm.set_field, tasks.assign]
+    playbook: prompts/desk.md
+    duties:
+      - read every finding posted this round
+      - merge findings that are the same problem seen from different apps (same account or deal)
+      - decide per problem: auto-handle (draft / note / task), hand off to an agent (@mention), or escalate to a human
+      - post exactly one brief to #attention, ranked, max 3 human items, each with who / what / why / evidence
+      - when a human replies in the brief thread, record the answer back into the CRM or Tasks and confirm on the floor
+    escalation_default: dana
+
+round:
+  passes: 2
+  pass_1: watchers sweep and post finding cards to the floor
+  pass_2: desk merges/decides/@mentions; watchers execute assigned actions and confirm in-thread
+  trigger:
+    demo: manual — `python -m floor.round`
+    scheduled: Trigger.dev cron, weekdays 09:00 (or the workspace's Automations app if it can invoke the runner)

@@ -1,0 +1,24 @@
+{
+  "company": {
+    "name": "Brightline Payroll",
+    "tagline": "Payroll software for restaurant groups",
+    "note": "Entirely fictional. Every person, customer, email and number in this seed is invented for the hackathon demo."
+  },
+  "people": [
+    {"id": "dana",   "name": "Dana Whitfield", "role": "Head of Sales",       "email": "dana@brightline.example",   "human": true,  "escalation_default": true},
+    {"id": "priya",  "name": "Priya Nair",     "role": "Account Executive",   "email": "priya@brightline.example",  "human": true},
+    {"id": "marcus", "name": "Marcus Bell",    "role": "Onboarding Lead",     "email": "marcus@brightline.example", "human": true},
+    {"id": "theo",   "name": "Theo Lang",      "role": "Support Lead",        "email": "theo@brightline.example",   "human": true},
+    {"id": "ops",       "name": "Ops",       "role": "agent — watches the CRM",              "human": false},
+    {"id": "inbox",     "name": "Inbox",     "role": "agent — watches Mail",                 "human": false},
+    {"id": "followup",  "name": "Follow-up", "role": "agent — watches Calendar and Tasks",   "human": false},
+    {"id": "desk",      "name": "Desk",      "role": "agent — merges, decides, talks to humans", "human": false}
+  ],
+  "channels": [
+    {"name": "agents-floor", "purpose": "Agent-only. Watchers post findings; the Desk replies with decisions and handoffs. Humans may read.", "members": ["ops", "inbox", "followup", "desk"]},
+    {"name": "attention",    "purpose": "Human-facing. One brief per round from the Desk. Reply in thread; the Desk records your answer.", "members": ["desk", "dana", "priya", "marcus", "theo"]},
+    {"name": "sales",        "purpose": "Existing human channel. Seeded with history the watchers read.", "members": ["dana", "priya", "marcus"]},
+    {"name": "ops-team",     "purpose": "Existing human channel. Seeded with history the watchers read.", "members": ["marcus", "theo", "dana"]}
+  ],
+  "date_convention": "All dates in the seed are offsets in days relative to 'today' at load time (negative = past). The loader converts them to real dates so the demo is fresh whenever you run it."
+}

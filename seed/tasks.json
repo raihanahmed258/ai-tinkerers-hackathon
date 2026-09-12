@@ -1,0 +1,20 @@
+[
+  {"id": "T-1", "title": "Send Copper Kettle revised quote (3-location discount)", "owner": "priya",  "due_days": -19, "status": "open", "linked_deal": "D-101",
+   "expected_role": "OVERDUE 19 days. The promise from #sales and E-7, as a task. Merge with D-101 / M-1 / E-1."},
+  {"id": "T-2", "title": "Schedule Marigold Diners kickoff",                      "owner": "marcus", "due_days": -23, "status": "open", "linked_deal": "D-102",
+   "expected_role": "OVERDUE 23 days. Merge with D-102 / M-2 / E-2. Follow-up assigns Marcus; Inbox drafts reply with proposed dates."},
+  {"id": "T-3", "title": "Update Harbor Fish close date",                          "owner": "priya",  "due_days": -25, "status": "open", "linked_deal": "D-104",
+   "expected_role": "OVERDUE 25 days. Merge with D-104 zombie close date. Low priority; ask Priya to update or close."},
+  {"id": "T-4", "title": "Confirm Q3 state withholding filings — all customers",   "owner": "theo",   "due_days": -8,  "status": "open", "linked_deal": null,
+   "expected_role": "OVERDUE 8 days and directly relevant to the Ember Grill question (M-3). Strengthens the top escalation: the check Theo promised has not been done."},
+  {"id": "T-5", "title": "Send Fig & Thistle roster reminder",                     "owner": "marcus", "due_days": -24, "status": "done", "linked_deal": "D-116",
+   "expected_role": "DONE — control. Shows the nudge was sent; the ball is with the customer."},
+  {"id": "T-6", "title": "Book Juniper second call",                               "owner": "priya",  "due_days": -9,  "status": "done", "linked_deal": "D-108",
+   "expected_role": "DONE — control."},
+  {"id": "T-7", "title": "Dockside payroll mapping",                                "owner": "marcus", "due_days": 3,   "status": "open", "linked_deal": "D-111",
+   "expected_role": "OPEN, not due yet — control. Must not be flagged."},
+  {"id": "T-8", "title": "Chase Northgate Brewing ops director",                    "owner": "priya",  "due_days": -2,  "status": "open", "linked_deal": "D-112",
+   "expected_role": "OVERDUE 2 days — minor. Together with D-112's 27 quiet days, a one-line question to Priya is appropriate, not an escalation."},
+  {"id": "T-9", "title": "Prepare Q3 board pack",                                  "owner": "dana",   "due_days": 10,  "status": "open", "linked_deal": null,
+   "expected_role": "OPEN, future — control."}
+]

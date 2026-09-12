@@ -1,0 +1,33 @@
+{
+  "sales": [
+    {"days": -26, "from": "dana",   "text": "Pipeline review tomorrow 10am. Bring updated close dates please."},
+    {"days": -26, "from": "priya",  "text": "Will do. Copper Kettle's CFO wants a revised quote with the 3-location discount — I'll send it Friday."},
+    {"days": -26, "from": "dana",   "text": "Good. That's our biggest Q3 close after Bluebird."},
+    {"days": -25, "from": "priya",  "text": "Harbor Fish is still 'discussing internally'. I'll update the close date once I hear back."},
+    {"days": -21, "from": "priya",  "text": "Copper Kettle meeting went well, they want the quote before their board meets on the 30th."},
+    {"days": -21, "from": "dana",   "text": "Nice. Get it over to them this week."},
+    {"days": -19, "from": "priya",  "text": "Pine & Salt: Jordan is pushing this internally, technical review next week hopefully."},
+    {"days": -14, "from": "dana",   "text": "Reminder — Q3 forecast locks Friday."},
+    {"days": -13, "from": "priya",  "text": "Bluebird redlines expected next week, Saffron contract is with their counsel, Meridian proposal out."},
+    {"days": -9,  "from": "priya",  "text": "Juniper second call booked for Thursday, bringing our SE."},
+    {"days": -7,  "from": "dana",   "text": "Anyone heard from Northgate Brewing? Been a while."},
+    {"days": -7,  "from": "priya",  "text": "Waiting on their ops director's calendar. I'll chase."},
+    {"days": -3,  "from": "priya",  "text": "Gold Leaf signature expected this week."},
+    {"days": -1,  "from": "priya",  "text": "Bluebird redlines are in — mostly liability clause. Legal has them."},
+    {"days": -1,  "from": "dana",   "text": "Great. Let's get that closed."}
+  ],
+  "ops-team": [
+    {"days": -30, "from": "marcus", "text": "Marigold Diners signed today. I'll book their kickoff this week."},
+    {"days": -30, "from": "dana",   "text": "🎉"},
+    {"days": -28, "from": "theo",   "text": "Heads up: Q3 state withholding filings go out in batches from the 1st. I'll confirm each customer's went through."},
+    {"days": -22, "from": "marcus", "text": "Fig & Thistle still hasn't sent their employee roster. Nudged again."},
+    {"days": -20, "from": "marcus", "text": "Dockside kickoff done, mapping payroll now. Smooth one."},
+    {"days": -15, "from": "theo",   "text": "Alder Street had a login issue, fixed same day."},
+    {"days": -10, "from": "marcus", "text": "Swamped with Dockside this week, Marigold kickoff will have to be next week."},
+    {"days": -8,  "from": "theo",   "text": "Reminder to self: check the Ember Grill filing confirmation, their accountant is particular."},
+    {"days": -5,  "from": "marcus", "text": "Dockside is 80% mapped."},
+    {"days": -2,  "from": "theo",   "text": "Out Thursday afternoon for a dentist appointment."},
+    {"days": -1,  "from": "marcus", "text": "Dockside go-live scheduled for the 1st. 🚀"}
+  ],
+  "_expected_role": "Promises the watchers should extract: Priya — 'send Copper Kettle quote Friday' (−26, repeated −21, never done); Priya — 'update Harbor Fish close date' (−25, never done); Priya — 'chase Northgate' (−7, no evidence); Marcus — 'book Marigold kickoff this week' (−30, re-promised −10, never done); Theo — 'confirm each customer's filing went through' (−28) and 'check Ember Grill filing' (−8) — relevant to M-3. Noise messages must not become findings."
+}

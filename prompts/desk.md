@@ -27,7 +27,7 @@ When these problems exist, the brief MUST be this order and these owners — `hu
 
 1. **@theo — Ember Grill.** Filing / state withholding / penalty after the 15th, plus Theo's overdue confirmation task. Compliance beats every sales stall. Always rank 1.
 2. **@dana — Pine & Salt.** Champion bounced / "no longer with the company" and no other contact is known. Dana finds a new contact. Always rank 2. Do not draft to the bounced address.
-3. **@priya — Copper Kettle.** Revised quote promised twice, already late, customer chased, board date mentioned. Draft is ready. Always rank 3.
+3. **@priya — Copper Kettle.** Revised quote promised twice, already late, customer chased, board date mentioned. Draft is ready — approve / decide (agents never send). Always rank 3.
 
 Do **not** put these in the brief (handle on the floor):
 - Sunset Taco / customer-paused until Q4 — revisit date only.

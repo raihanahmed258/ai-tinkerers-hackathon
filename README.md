@@ -4,6 +4,8 @@ Built at **AI Tinkerers Ottawa — Agents, Everywhere** (September 2026).
 
 Three narrow watchers, one Desk that merges and decides, an agent-only channel where they coordinate, and a three-item brief for humans.
 
+> **Tier 1 live demo:** The visible handoff is `ASSIGN → VERIFIER · approved | refused | needs_rewrite → DONE | BLOCKED`. The Ambiguous-only shot list is [`demo/script.md`](demo/script.md); it is the source of truth for what the live recording claims.
+
 **The problem.** At a small company one stuck customer does not arrive as one alert. It arrives as four weak signals nobody connects: a deal gone quiet in the CRM, an email nobody answered, an overdue task, and a promise someone made in chat and never kept. No human's job is to read all four every morning, so things slip. The quote never goes out. The kickoff never gets booked. The champion leaves. The filing deadline passes.
 
 **The shape of the fix.** A small floor of always-on agents that each watch one slice, post what they see to a channel of their own, and let one of them merge the pieces back into single problems. Humans get at most three of them a day.
@@ -24,7 +26,7 @@ A round is exactly two passes. It cannot loop.
 | **Inbox** | Mail | unanswered customer threads, bounces, deadline and penalty language |
 | **Follow-up** | Calendar, Tasks, chat promises | overdue tasks, meetings with no follow-up, promises never kept |
 
-**Pass 2 — the Desk decides.** The Desk watches no app. It reads the floor, merges findings that are the same problem seen from different tools, does the work that is safe to do unsupervised, and posts one ranked brief to `#attention` with at most three human items. Everything else is handled and logged on the floor.
+**Pass 2 — the Desk decides.** The Desk watches no app. It reads the floor, merges findings that are the same problem seen from different tools, and posts a bounded `ASSIGN`. A Verifier gate emits `approved`, `refused`, or `needs_rewrite`; an approved worker reports `DONE` or `BLOCKED` on the floor. The Desk posts one ranked brief to `#attention` with at most three human items.
 
 The merge is the point. Copper Kettle is one problem with four fingerprints (`D-101` in the CRM, `M-1` in Mail, `T-1` overdue in Tasks, `E-1` a meeting that went nowhere), not four notifications.
 
@@ -42,10 +44,10 @@ Two different strengths of guarantee here, and they are worth keeping apart. Som
 
 **Enforced by prompt and honoured in practice, but the capability is there.**
 
-- **Stage and close-date changes.** `set_field` is in the `execute_actions` allowlist, `McpClient.set_deal_field` will write `stage_id` and `close_date`, and `agents.yaml` grants `crm.set_field` to Ops and the Desk. What stops it is `prompts/watcher_ops.md`, which tells the watcher to propose rather than change. Zero `set_field` calls fired in the validated run. So the honest claim is that no stage change happens in a round, not that one is impossible.
+- **Stage and close-date changes.** The Tier 1 Verifier refuses moves to either field before a worker can act. Each round visibly tests that boundary with a fake `move stage` request; no real stage or close-date change is made.
 - **Facts and dates, never opinions about people.** The "never" list in `agents.yaml`, reinforced in every playbook, plus a filter in code that drops findings containing feeling-words about customers or judgements about colleagues.
 
-**Read-heavy, write-light either way.** The entire write surface is a note, a task, a draft, a field update and a message on the floor. `execute_actions` maps that fixed allowlist to client calls and refuses and logs anything else.
+**Read-heavy, write-light either way.** Tier 1 keeps the visible worker surface to bounded internal work and floor messages; it never sends customer mail or moves stages or close dates. The Verifier refuses and logs work outside that boundary.
 
 ---
 
@@ -84,6 +86,8 @@ There is a heuristic fallback that runs when the key is missing or a model call 
 ```
 
 ### Scoring a run
+
+For the short evaluation flow and the meaning of `GREEN`, `AMBER`, and `RED`, see [`demo/evals.md`](demo/evals.md). Keep evaluations outside the Ambiguous-only recording.
 
 The seed was built so a good round is checkable rather than a matter of taste, and [`seed/expected_findings.md`](seed/expected_findings.md) is the golden answer. `floor/eval_expected.py` scores a captured round against it:
 

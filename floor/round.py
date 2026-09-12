@@ -1082,6 +1082,13 @@ def _resolve_deal_id(ws: WorkspaceClient, ref: str | None, account: str | None =
     return r if _looks_deal_ref(r) else None
 
 
+
+def _mail_ref_unusable(ref) -> bool:
+    """True when a draft should not be ASSIGN'd (empty / placeholder mail ref)."""
+    r = _text(ref).strip()
+    return (not r) or r in {"—", "-", "–", "none", "null", "n/a", "na"}
+
+
 def _resolve_mail_id(ws: WorkspaceClient, ref: str | None) -> str | None:
     """Resolve seed M-* / live UUID → mail thread id via client.
 
@@ -1355,6 +1362,19 @@ def execute_actions(problems: list[dict], ws: WorkspaceClient) -> None:
                 continue
 
             worker = _worker_for_action(action_type, agent_id)
+
+            # Draft ASSIGN hygiene: never ASSIGN/VERIFIER-approve a draft with no mail ref
+            # (avoids VERIFIER·approved → BLOCKED theater on empty live inbox / "—").
+            if action_type == "draft" and _mail_ref_unusable(ref):
+                with ws.as_agent("desk"):
+                    ws.post(
+                        floor,
+                        f"NOTE · draft skipped\n"
+                        f"account: {account}\n"
+                        f"reason: no resolvable mail ref ({_text(ref) or '—'!r}) — not assigning",
+                    )
+                continue
+
             _post_assign(ws, floor, account, worker, action.get("action") or action_type, ref, cause)
 
             if action_type == "refused":

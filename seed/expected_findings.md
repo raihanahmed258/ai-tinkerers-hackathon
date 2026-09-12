@@ -48,7 +48,7 @@ Minor: T-8 Northgate chase 2 days overdue.
 **#attention brief (one post):** three items for humans, ranked —
 1. **Theo** — Ember Grill's Q3 state withholding: customer says it didn't go out, penalties after the 15th, your filing-confirmation task is 8 days overdue. Please confirm today.
 2. **Dana** — Pine & Salt ($120K): our champion Jordan Reyes has left; we have no other contact and a technical review booked for next week that won't happen. Who do we know there?
-3. **Priya** — Copper Kettle ($84K): the revised quote promised on two occasions is 19 days late; the customer has chased twice and mentions a board meeting. Draft reply is ready — send today?
+3. **Priya** — Copper Kettle ($84K): the revised quote promised on two occasions is 19 days late; the customer has chased twice and mentions a board meeting. Draft reply is ready — approve / decide (agents never send).
 
 Everything else: handled on the floor (drafts prepared, reasons attached, nudges proposed, one question to Priya on Northgate, Marigold slots proposed to Marcus).
 

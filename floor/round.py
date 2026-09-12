@@ -1471,8 +1471,16 @@ def post_brief(problems: list[dict], ws: WorkspaceClient) -> str:
             lines.append(f"   Evidence: {refs}")
         actions = problem.get("actions") or []
         if actions:
-            ready = ", ".join(a.get("action", "") for a in actions if a.get("action"))
-            if ready:
+            # Scrub "send" language to reinforce agents-never-send
+            ready_items = []
+            for a in actions:
+                action_name = _text(a.get("action", ""))
+                if "draft" in action_name.lower() or "send" in action_name.lower():
+                    ready_items.append("draft (approve / decide — agents never send)")
+                elif action_name:
+                    ready_items.append(action_name)
+            if ready_items:
+                ready = ", ".join(ready_items)
                 lines.append(f"   Ready: {ready}")
         lines.append("")
 

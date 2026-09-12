@@ -137,6 +137,7 @@ demo/
   judge_qa.md                answers to the questions judges actually ask
   PROJECT_DESCRIPTION.md     the long-form writeup
   judge_pitch.md             30-second and 2-minute pitch outlines
+AUTOMATIONS.md               running the round on a weekday schedule, with the budget math
 MCP_MAPPING.md               WorkspaceClient → real Ambiguous tool names
 SEED_REPORT.md               what got seeded live, with ids
 MOCK_ROUND_VALIDATE3.txt     raw log of the validated round

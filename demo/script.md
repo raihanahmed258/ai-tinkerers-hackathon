@@ -6,6 +6,10 @@ One take. Your voice. Exactly 2:00.
 
 **What this script will not do:** it does not cut to a Mail draft, it does not show a CRM note appearing, it does not claim the Desk replies inside each finding's thread, and it does not stage a human reply loop. None of those happened in the validated run. The brief's own printed last line still advertises a reply loop, so checklist item 6 tells you how to keep it out of shot. See the internal notes at the bottom for what was cut and why.
 
+## Optional architecture card — after the timed take, not inside it
+
+If a judge asks what comes after the MVP, open [`architecture.md`](architecture.md). It shows the intended small-org handoff: **Desk → workers → Verifier → brief**. Say: "The current run has the watchers, Desk, closed action set, and brief. Verifier and Closer are the next safety handoff; they are designed, not demoed." Do not place this card inside the 2:00 recording or imply the validated run exercised it.
+
 ---
 
 ## 1. Pre-record checklist

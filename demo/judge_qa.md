@@ -60,6 +60,14 @@ Sunset Taco is the judgment test in the seed. M-6 has the customer pausing until
 
 ---
 
+## 6. Where do Verifier and Closer fit in?
+
+**Say first:** They are the next safety handoff, not an extra claim about this run.
+
+The current MVP has watchers, the Desk, a closed action allowlist, and a three-item brief. The proposed next shape is **Desk → workers → Verifier → Closer → brief**. Verifier would check that the exact proposed action is evidenced and allowed before it is treated as complete; Closer would turn that approved receipt into one concise internal status for the Desk. Their role contracts are in `prompts/verifier.md` and `prompts/closer.md`, and the diagram is `demo/architecture.md`.
+
+**Do not overclaim:** the validated transcript does not contain a Verifier verdict or a Closer record. Today, the allowlist and no-send boundary are enforced in `execute_actions` and `WorkspaceClient`; the two new roles are the design for making that review visible as the system grows.
+
 ## Pocket answers
 
 | If they ask | Say |
@@ -83,6 +91,7 @@ Sunset Taco is the judgment test in the seed. M-6 has the customer pausing until
 - **Do not say the Desk posts PROBLEM blocks in each finding's thread.** It does not. Say: "the merge is visible as the Evidence line inside the brief, like `Evidence: D-101, T-1, E-1`. In-thread PROBLEM blocks are the next iteration."
 - **Do not say the agents wrote CRM notes.** Zero CRM notes were written. Say: "`add_note` is in the allowlist and wired to the client, and this run only exercised `assign_task` and `ask`."
 - **Do not say the reply loop runs.** It is a stub and it is commented out. Say: "designed, stubbed, not wired. That is rung 4 and I stopped at rung 3."
+- **Do not say the Verifier or Closer ran.** They are documented next roles, not components exercised in `MOCK_ROUND_VALIDATE3.txt`. Say: "the current enforcement is in code; the explicit review handoff is designed next."
 - **Do not offer to show the refusal live.** Nothing trips the allowlist in a normal round. Say: "I can show you the allowlist and the refusal branch in `execute_actions`. It is a guarantee in the code, and a normal round never trips it."
 - **Do not claim a round time in seconds.** The live number is unmeasured. Say: "the heuristic no-key path finishes in about 0.2 seconds, and I have not timed the four live model calls."
 - **Do not imply the brief ranking is the model's judgment.** Say: "the top three and their owners are pinned in `_stabilize_brief` for recording stability, and `_ensure_golden_problems` will synthesise one of those three if the Desk drops it. The evidence in the 14 model-written cards is the model's work."

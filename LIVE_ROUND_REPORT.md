@@ -21,10 +21,17 @@ Channel: `#agents-floor` (`6606389e-0977-415a-987e-599001037834`)
   4. Harbor Fish
   5. Northgate Brewing
 - Safety demo:
-  - customer-send request → `VERIFIER · refused` → `BLOCKED`
-  - stage-change request → `VERIFIER · refused` → `BLOCKED`
+  - header: message `e1a988b9-f0e4-4cb3-b431-c2716ace57ff`
+  - customer-send request → `VERIFIER · refused` → `BLOCKED`, with blocked
+    receipt `ffb0d680-e054-4460-a2a2-d9349ca78c7b`
+  - stage-change request → `VERIFIER · refused` → `BLOCKED`, with verifier
+    receipt `b660247a-54c2-4473-b859-01e96469dcec` and blocked receipt
+    `fdefb7fb-9a2d-4408-8ea8-1a77208e04eb`
 - Approved work:
-  - Ember Grill task chain reached `VERIFIER · approved` and `DONE`
+  - Ember Grill task chain reached `VERIFIER · approved` and `DONE`:
+    `505a65e2-d605-404f-a5ed-aceda1cc47cc` →
+    `e19885f7-c9a6-495e-9d1b-d2eeb4a00130` →
+    `bed76f86-9342-4a18-92e9-e67ee901826b`
   - other task and internal-question chains also reached `DONE`
   - unresolved Inbox draft chains ended `BLOCKED`, not fake `DONE`
 - Work summary: message `718753c3-9e87-48ab-9ff1-05b97334f283`
@@ -55,7 +62,9 @@ Channel: `#attention` (`8db08df8-60fe-4366-beef-fb13163d73ef`)
   Follow-up.
 - The brief contains one human item, not the three-item mock story.
 - This round predates the cleanup that removed the brief's misleading
-  `Ready:` line and disabled reply promise.
+  `Ready:` line and disabled reply promise. The historical message still shows
+  both; the recording guide keeps those lower lines out of frame and provides
+  an explicit fallback explanation if they remain visible.
 - Floor `DONE` receipts prove what the runner reported. A read-only task search
   found Ember Grill tasks created earlier at 16:18 and 16:32 UTC, but no task
   timestamped during this round, so the 17:16 task receipt was not independently

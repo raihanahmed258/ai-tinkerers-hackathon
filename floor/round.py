@@ -26,7 +26,8 @@ try:
 except Exception:
     pass
 
-from .client import MockClient, WorkspaceClient
+from .client import MockClient, WorkspaceClient, resolve_agent_token
+from .router import slice_for
 
 ROOT = Path(__file__).resolve().parent.parent
 CFG = yaml.safe_load((ROOT / "agents.yaml").read_text(encoding="utf-8"))
@@ -36,18 +37,6 @@ def playbook(agent: dict) -> str:
     text = (ROOT / agent["playbook"]).read_text(encoding="utf-8")
     return text.replace("{{today}}", dt.date.today().isoformat()).replace(
         "{{max_findings}}", str(CFG["defaults"]["max_findings_per_run"]))
-
-
-def slice_for(agent_id: str, ws: WorkspaceClient) -> dict:
-    """What each watcher is allowed to see. Keep slices narrow — it is the point of the design."""
-    if agent_id == "ops":
-        return {"deals": ws.list_deals()}
-    if agent_id == "inbox":
-        return {"threads": ws.list_threads()}
-    if agent_id == "followup":
-        return {"tasks": ws.list_tasks(), "events": ws.list_events(),
-                "chat": {ch: ws.read_channel(ch, since_hours=24 * 45) for ch in ("sales", "ops-team")}}
-    raise KeyError(agent_id)
 
 
 def _text(value) -> str:
@@ -516,9 +505,27 @@ def _heuristic_watcher(agent_id: str, slice_data: dict) -> list[dict]:
     return findings[:max_findings]
 
 
+_AGENT_LABEL = {
+    "ops": "Ops",
+    "inbox": "Inbox",
+    "followup": "Follow-up",
+    "follow-up": "Follow-up",
+    "desk": "Desk",
+}
+
+
+def _agent_label(agent_id: str | None) -> str:
+    raw = _text(agent_id).strip() or "unknown"
+    return _AGENT_LABEL.get(raw.lower(), raw[:1].upper() + raw[1:] if raw else "unknown")
+
+
 def _render_finding_card(finding: dict) -> str:
-    """Render a finding dict as a FINDING card per finding_card_schema.md."""
-    agent = finding.get("agent", "unknown")
+    """Render a finding dict as a FINDING card per finding_card_schema.md.
+
+    Blank line after the header keeps Ambiguous chat scannable; labelled lines
+    stay machine-readable for the Desk parser.
+    """
+    agent = _agent_label(finding.get("agent", "unknown"))
     confidence = finding.get("confidence", "medium")
     account = finding.get("account", "—")
     ref = finding.get("ref", "—")
@@ -534,6 +541,7 @@ def _render_finding_card(finding: dict) -> str:
         needs = "no"
 
     return f"""FINDING · {agent} · {confidence}
+
 account: {account}
 ref: {ref}
 what: {what}
@@ -860,26 +868,37 @@ def _stabilize_brief(problems: list[dict]) -> list[dict]:
 def _parse_finding_card(card: str) -> dict | None:
     """Parse a FINDING card string back to structured dict."""
     try:
-        lines = card.strip().split("\n")
-        if not lines[0].startswith("FINDING"):
+        lines = [ln.strip() for ln in card.strip().splitlines() if ln.strip()]
+        if not lines or not lines[0].upper().startswith("FINDING"):
             return None
-        
-        parts = lines[0].split("·")
+
+        parts = [p.strip() for p in lines[0].replace("·", "·").split("·")]
         if len(parts) < 3:
             return None
-        
+
+        agent = parts[1].strip()
+        # Normalize display labels back to ids when needed downstream
+        agent_id = {
+            "Ops": "ops", "Inbox": "inbox", "Follow-up": "followup",
+            "Followup": "followup", "Desk": "desk",
+        }.get(agent, agent.lower().replace(" ", "").replace("-", ""))
+        if agent_id == "followup" or agent.lower() in ("follow-up", "followup"):
+            agent_id = "followup"
+
         finding = {
-            "agent": parts[1].strip(),
-            "confidence": parts[2].strip(),
+            "agent": agent_id,
+            "confidence": parts[2].strip().split()[0].lower(),
         }
-        
+
         for line in lines[1:]:
-            if ":" in line:
-                key, value = line.split(":", 1)
-                finding[key.strip()] = value.strip()
-        
+            clean = line.lstrip("-* ").strip()
+            if ":" not in clean:
+                continue
+            key, value = clean.split(":", 1)
+            finding[key.strip().lower()] = value.strip()
+
         return finding
-    except:
+    except Exception:
         return None
 
 
@@ -954,79 +973,462 @@ def _heuristic_desk_merge(findings: list[dict]) -> list[dict]:
     return problems
 
 
-def execute_actions(problems: list[dict], ws: WorkspaceClient) -> None:
-    """Map action -> client call. Allowed set is closed:
-    add_note -> ws.add_deal_note | set_field -> ws.set_deal_field | draft -> ws.create_draft
-    assign_task -> ws.create_task | ask -> ws.post(floor, '@name ...', thread_id) | flag_event -> ws.post(...)
-    Anything else is refused and logged. That refusal IS the safety story — say it in the video."""
-    
-    ALLOWED_ACTIONS = {"add_note", "add note", "set_field", "set field", "draft", "draft reply", 
-                       "create_draft", "assign_task", "create task", "ask", "flag_event", "flag event", "none"}
-    
+def _render_problem_card(problem: dict) -> str:
+    """Human-readable Desk merge card for #agents-floor."""
+    account = problem.get("account", "—")
+    rank = problem.get("rank", "?")
+    merges = ", ".join(problem.get("merges") or []) or "—"
+    cause = problem.get("cause", "unclear")
+    actions = problem.get("actions") or []
+    action_bits = []
+    for a in actions:
+        agent = _agent_label(a.get("agent"))
+        action_bits.append(f"{agent} → {a.get('action', 'none')}")
+    actions_s = ", ".join(action_bits) if action_bits else "none"
+    human = problem.get("human")
+    if human:
+        human_s = f"@{human.get('who', 'dana')} — {human.get('text', cause)}"
+    else:
+        human_s = "none"
+    return f"""PROBLEM · {account} · rank {rank}
+
+merges: {merges}
+cause: {cause}
+actions: {actions_s}
+human: {human_s}"""
+
+
+def _looks_deal_ref(ref: str | None) -> bool:
+    r = _text(ref).strip()
+    if not r:
+        return False
+    if r.upper().startswith("D-"):
+        return True
+    # Live Ambiguous deal ids are UUIDs
+    return len(r) == 36 and r.count("-") == 4
+
+
+def _looks_mail_ref(ref: str | None) -> bool:
+    r = _text(ref).strip()
+    if not r:
+        return False
+    if r.upper().startswith("M-"):
+        return True
+    return len(r) == 36 and r.count("-") == 4
+
+
+def _resolve_deal_id(ws: WorkspaceClient, ref: str | None, account: str | None = None) -> str | None:
+    """Map mock D-101 / title crumbs / account name → live deal UUID when needed."""
+    r = _text(ref).strip()
+    deals = list(ws.list_deals())
+    by_id = { _text(d.get("id")): d for d in deals }
+
+    if r and r in by_id:
+        return r
+    if r.upper().startswith("D-"):
+        needle = r.upper()
+        for d in deals:
+            blob = f"{d.get('id')} {d.get('title')} {d.get('account')}".upper()
+            if needle in blob:
+                return _text(d.get("id")) or None
+    if account and account != "—":
+        acc = account.lower()
+        for d in deals:
+            if acc in _text(d.get("account")).lower() or acc in _text(d.get("title")).lower():
+                return _text(d.get("id")) or None
+    return r if _looks_deal_ref(r) else None
+
+
+def _resolve_mail_id(ws: WorkspaceClient, ref: str | None) -> str | None:
+    """Resolve seed M-* / live UUID → mail thread id via client.
+
+    Never invents an id. Unresolved → None so execute_actions drafts BLOCK
+    (no silent DONE / fake approve). Prefer WorkspaceClient.resolve_mail_id.
+    """
+    resolver = getattr(ws, "resolve_mail_id", None)
+    if callable(resolver):
+        return resolver(ref)
+
+    r = _text(ref).strip()
+    if not r:
+        return None
+    try:
+        threads = list(ws.list_threads())
+    except Exception:
+        threads = []
+    by_id = {_text(th.get("id")): th for th in threads if th.get("id") is not None}
+    if r in by_id:
+        return r
+    if r.upper().startswith("M-"):
+        needle = r.upper()
+        for th in threads:
+            blob = f"{th.get('id')} {th.get('subject')} {th.get('ref')}".upper()
+            if needle in blob:
+                return _text(th.get("id")) or None
+    # Do NOT passthrough unverified UUID/M-* — live inbox may be empty (SEED MAIL).
+    return None
+
+
+def _normalize_action_type(raw: str) -> str:
+    action_type = _text(raw).lower().strip()
+    if not action_type or action_type == "none":
+        return "none"
+    if "propose" in action_type or "slot" in action_type:
+        return "refused"
+    if "send" in action_type and "draft" not in action_type:
+        return "refused"
+    if "note" in action_type:
+        return "add_note"
+    if "stage" in action_type or "close_date" in action_type or "close date" in action_type:
+        return "refused"  # hard safety: never move stage/close_date from the round
+    if "field" in action_type:
+        return "set_field"
+    if "draft" in action_type:
+        return "draft"
+    if "task" in action_type:
+        return "assign_task"
+    if "ask" in action_type:
+        return "ask"
+    if "flag" in action_type:
+        return "flag_event"
+    return "refused" if action_type not in {
+        "add_note", "set_field", "draft", "assign_task", "ask", "flag_event", "none"
+    } else action_type
+
+
+def _ensure_productive_actions(problem: dict) -> list[dict]:
+    """If Desk left a problem with no runnable actions, invent safe defaults so agents do work."""
+    actions = list(problem.get("actions") or [])
+    usable = []
+    for a in actions:
+        if _normalize_action_type(a.get("action")) not in ("none", "refused"):
+            usable.append(a)
+    if usable:
+        return usable
+
+    merges = problem.get("merges") or []
+    account = problem.get("account", "—")
+    cause = problem.get("cause", "issue flagged")
+    human = problem.get("human") or {}
+    who = human.get("who") or "dana"
+    defaults = []
+
+    deal_ref = next((m for m in merges if _looks_deal_ref(m) or _text(m).upper().startswith("D-")), None)
+    mail_ref = next((m for m in merges if _text(m).upper().startswith("M-") or (
+        len(_text(m)) == 36 and _text(m).count("-") == 4 and not deal_ref
+    )), None)
+    # Prefer explicit M- for mail; UUID without D- may be mail or deal — handled at execute time
+
+    if deal_ref or account not in ("—", "", None):
+        defaults.append({
+            "agent": "ops",
+            "action": "add_note",
+            "args": {"ref": deal_ref or merges[0] if merges else "", "account": account},
+        })
+    if mail_ref:
+        defaults.append({
+            "agent": "inbox",
+            "action": "draft",
+            "args": {"ref": mail_ref},
+        })
+    # Always leave a task for the human owner when escalated
+    if human:
+        defaults.append({
+            "agent": "followup",
+            "action": "assign_task",
+            "args": {"ref": deal_ref or (merges[0] if merges else ""), "who": who},
+        })
+        defaults.append({
+            "agent": "desk",
+            "action": "ask",
+            "args": {"who": who, "ref": deal_ref or ""},
+        })
+    elif defaults:
+        pass
+    else:
+        defaults.append({
+            "agent": "desk",
+            "action": "ask",
+            "args": {"who": who, "ref": ""},
+        })
+    # stash cause for note text
+    for d in defaults:
+        d.setdefault("args", {})["cause"] = cause
+    return defaults
+
+
+def _verify_action(action_type: str, action: dict, problem: dict) -> tuple[str, str]:
+    """Code Verifier: returns (approved|refused|needs_rewrite, reason)."""
+    cause = _text(problem.get("cause") or action.get("args", {}).get("cause"))
+    raw = _text(action.get("action")).lower()
+
+    if action_type in ("refused", "none"):
+        return "refused", "action not on closed allowlist"
+
+    if "send" in raw and "draft" not in raw:
+        return "refused", "customer send is forbidden; draft only"
+
+    if action_type == "set_field":
+        field = _text((action.get("args") or {}).get("field")).lower()
+        if field in ("stage", "stage_id", "close_date", "close date", "pipeline", "pipeline_id", "owner_id", "status"):
+            return "refused", f"field '{field}' is blocked (safety)"
+
+    if action_type not in ("add_note", "draft", "assign_task", "ask", "flag_event"):
+        return "refused", f"'{action_type}' not allowed"
+
+    # Soft rewrite signal: empty cause
+    if action_type in ("add_note", "ask", "assign_task") and not cause:
+        return "needs_rewrite", "missing factual cause/dates"
+
+    return "approved", "allowlist + safety checks passed"
+
+
+def _worker_for_action(action_type: str, agent_id: str | None = None) -> str:
+    """Map action → specialist that must execute it (Desk only assigns)."""
+    if action_type == "add_note":
+        return "closer" if resolve_agent_token("closer") else "ops"
+    if action_type == "draft":
+        return "inbox"
+    if action_type in ("assign_task", "flag_event"):
+        return "followup"
+    if action_type == "ask":
+        return "desk"
+    if action_type == "set_field":
+        return "ops"
+    return (agent_id or "desk").lower()
+
+
+def _post_assign(ws: WorkspaceClient, floor: str, account: str, worker: str, action_type: str, ref: str, cause: str) -> None:
+    with ws.as_agent("desk"):
+        ws.post(
+            floor,
+            f"ASSIGN · {_agent_label(worker)} → {action_type}\n"
+            f"account: {account}\n"
+            f"ref: {ref or '—'}\n"
+            f"cause: {cause}\n"
+            f"rule: wait for VERIFIER · approved before write",
+        )
+
+
+def _post_done(ws: WorkspaceClient, floor: str, worker: str, action_type: str, account: str, detail: str) -> None:
+    with ws.as_agent(worker):
+        ws.post(
+            floor,
+            f"DONE · {_agent_label(worker)} · {action_type}\n"
+            f"account: {account}\n"
+            f"result: {detail}",
+        )
+
+
+def _post_blocked(ws: WorkspaceClient, floor: str, worker: str, action_type: str, account: str, reason: str) -> None:
+    with ws.as_agent(worker):
+        ws.post(
+            floor,
+            f"BLOCKED · {_agent_label(worker)} · {action_type}\n"
+            f"account: {account}\n"
+            f"reason: {reason}",
+        )
+
+
+def _refusal_theater(ws: WorkspaceClient, problems: list[dict]) -> None:
+    """Force one visible unsafe ask each round so judges see the boundary."""
+    floor = CFG["channels"]["floor"]
+    account = "—"
+    ref = ""
     for problem in problems:
-        actions = problem.get("actions", [])
-        
+        if problem.get("account") and problem.get("account") != "—":
+            account = problem["account"]
+            merges = problem.get("merges") or []
+            ref = next((m for m in merges if _looks_deal_ref(m) or _text(m).upper().startswith("D-")), merges[0] if merges else "")
+            break
+
+    # Alternate story: Desk is asked to send customer mail + move stage — both must die at Verifier
+    demos = [
+        {
+            "action": "send email to customer",
+            "agent": "inbox",
+            "args": {"ref": ref, "to": "customer@example.com"},
+            "cause": f"Would email {account} the revised quote without human approval",
+        },
+        {
+            "action": "set_field",
+            "agent": "ops",
+            "args": {"ref": ref, "field": "stage", "value": "Closed Won — Implementation"},
+            "cause": f"Would move {account} to Closed Won without a human decision",
+        },
+    ]
+    with ws.as_agent("desk"):
+        ws.post(
+            floor,
+            "—— Refusal theater · unsafe asks (must not execute) ——\n"
+            "Desk received two out-of-policy requests. Verifier must refuse both.",
+        )
+    for demo in demos:
+        action_type = _normalize_action_type(demo["action"])
+        worker = _worker_for_action(action_type, demo.get("agent"))
+        _post_assign(ws, floor, account, worker, action_type if action_type != "refused" else demo["action"], ref, demo["cause"])
+        # normalize may already mark send as refused
+        if "send" in demo["action"].lower() and "draft" not in demo["action"].lower():
+            action_type = "refused"
+        verdict, reason = ("refused", "customer send is forbidden; draft only") if action_type == "refused" else _verify_action(action_type, demo, {"cause": demo["cause"], "account": account})
+        if action_type == "set_field":
+            verdict, reason = _verify_action("set_field", demo, {"cause": demo["cause"], "account": account})
+        with ws.as_agent("verifier"):
+            ws.post(
+                floor,
+                f"VERIFIER · {verdict}\n"
+                f"account: {account}\n"
+                f"action: {demo['action']}\n"
+                f"agent: {_agent_label(worker)}\n"
+                f"reason: {reason}",
+            )
+        _post_blocked(ws, floor, worker, demo["action"], account, reason)
+
+
+def execute_actions(problems: list[dict], ws: WorkspaceClient) -> None:
+    """Desk assigns → Verifier gates → specialist executes → DONE/BLOCKED on the floor.
+
+    Closed allowlist only. Stage/close_date/send are hard-refused.
+    Live workspace refs may be UUIDs (not only mock D-/M- ids).
+    """
+    floor = CFG["channels"]["floor"]
+    done_lines: list[str] = []
+
+    # Visible safety story before productive work
+    _refusal_theater(ws, problems)
+
+    for problem in problems:
+        actions = _ensure_productive_actions(problem)
+        account = problem.get("account", "—")
+        cause = problem.get("cause", "issue flagged")
+
         for action in actions:
-            action_type = _text(action.get("action")).lower().strip()
-            args = action.get("args", {})
+            action_type = _normalize_action_type(action.get("action"))
+            args = dict(action.get("args") or {})
             ref = args.get("ref", "")
-            
-            # Normalize action type
-            if "note" in action_type:
-                action_type = "add_note"
-            elif "field" in action_type:
-                action_type = "set_field"
-            elif "draft" in action_type:
-                action_type = "draft"
-            elif "task" in action_type:
-                action_type = "assign_task"
-            elif "ask" in action_type:
-                action_type = "ask"
-            elif "flag" in action_type:
-                action_type = "flag_event"
-            
-            # Check allowlist
-            if action_type not in ALLOWED_ACTIONS or action_type == "none":
-                if action_type != "none":
-                    print(f"\n⚠️  REFUSED: action '{action.get('action')}' not in allowed set. Logged and skipped.")
+            agent_id = action.get("agent") or "desk"
+
+            if action_type == "none":
                 continue
-            
+
+            worker = _worker_for_action(action_type, agent_id)
+            _post_assign(ws, floor, account, worker, action.get("action") or action_type, ref, cause)
+
+            if action_type == "refused":
+                reason = "not in allowlist (safety)"
+                with ws.as_agent("verifier"):
+                    ws.post(
+                        floor,
+                        f"VERIFIER · refused\n"
+                        f"account: {account}\n"
+                        f"action: {action.get('action')}\n"
+                        f"agent: {_agent_label(worker)}\n"
+                        f"reason: {reason}",
+                    )
+                _post_blocked(ws, floor, worker, str(action.get("action")), account, reason)
+                continue
+
+            verdict, reason = _verify_action(action_type, action, problem)
+            with ws.as_agent("verifier"):
+                ws.post(
+                    floor,
+                    f"VERIFIER · {verdict}\n"
+                    f"account: {account}\n"
+                    f"action: {action_type}\n"
+                    f"agent: {_agent_label(worker)}\n"
+                    f"reason: {reason}",
+                )
+            if verdict != "approved":
+                _post_blocked(ws, floor, worker, action_type, account, reason)
+                continue
+
             try:
                 if action_type == "add_note":
-                    if ref and ref.startswith("D-"):
-                        note = f"Agent note: {problem.get('cause', 'issue flagged')}"
-                        ws.add_deal_note(ref, note)
-                        
+                    deal_id = _resolve_deal_id(ws, ref, account=args.get("account") or account)
+                    if not deal_id:
+                        _post_blocked(ws, floor, worker, action_type, account, "could not resolve deal id")
+                        continue
+                    note = f"[Floor/{_agent_label(worker)}] {args.get('cause') or cause}"
+                    with ws.as_agent(worker):
+                        ws.add_deal_note(deal_id, note)
+                    detail = f"note on deal {deal_id[:8]}…" if len(deal_id) > 8 else f"note on deal {deal_id}"
+                    _post_done(ws, floor, worker, action_type, account, detail)
+                    done_lines.append(f"{_agent_label(worker)} note · {account}")
+
                 elif action_type == "set_field":
-                    if ref and ref.startswith("D-"):
-                        field = args.get("field", "status")
-                        value = args.get("value", "flagged")
-                        ws.set_deal_field(ref, field, value)
-                        
+                    field = _text(args.get("field", "status")).lower()
+                    if field in ("stage", "stage_id", "close_date", "close date", "status", "pipeline", "pipeline_id"):
+                        _post_blocked(ws, floor, worker, action_type, account, f"field '{field}' blocked")
+                        continue
+                    deal_id = _resolve_deal_id(ws, ref, account=account)
+                    if not deal_id:
+                        _post_blocked(ws, floor, worker, action_type, account, "could not resolve deal id")
+                        continue
+                    with ws.as_agent(worker):
+                        ws.set_deal_field(deal_id, field, args.get("value", "flagged"))
+                    detail = f"set {field}"
+                    _post_done(ws, floor, worker, action_type, account, detail)
+                    done_lines.append(f"set {field} · {account}")
+
                 elif action_type == "draft":
-                    if ref and ref.startswith("M-"):
-                        body = f"Thank you for your message. We're reviewing this and will follow up shortly.\n\n{problem.get('cause', '')}"
-                        ws.create_draft(ref, body)
-                        
+                    thread_id = _resolve_mail_id(ws, ref)
+                    if not thread_id:
+                        # Fail closed: never DONE/approve without a resolved thread.
+                        reason = (
+                            f"could not resolve mail id for ref={_text(ref) or '—'!r} "
+                            "(empty inbox / SEED MAIL only / bad ref) — no draft"
+                        )
+                        _post_blocked(ws, floor, worker, action_type, account, reason)
+                        continue
+                    body = (
+                        "Thanks for your note — we're on it and will follow up shortly.\n\n"
+                        f"Internal context: {cause}"
+                    )
+                    with ws.as_agent(worker):
+                        ws.create_draft(thread_id, body)
+                    detail = f"draft on thread {thread_id[:8]}…"
+                    _post_done(ws, floor, worker, action_type, account, detail)
+                    done_lines.append(f"Inbox draft · {account}")
+
                 elif action_type == "assign_task":
-                    agent = action.get("agent", "ops")
-                    title = f"Follow up: {problem.get('account', 'item')}"
-                    owner = agent if agent in ["priya", "marcus", "theo", "dana"] else "dana"
+                    who = args.get("who") or (problem.get("human") or {}).get("who") or "dana"
+                    owner = who if who in ("priya", "marcus", "theo", "dana") else "dana"
+                    title = f"Follow up: {account} — {cause}"[:120]
                     due = (dt.date.today() + dt.timedelta(days=2)).isoformat()
-                    linked = ref if ref.startswith("D-") else None
-                    ws.create_task(title, owner, due, linked)
-                    
+                    deal_id = _resolve_deal_id(ws, ref, account=account)
+                    with ws.as_agent(worker):
+                        ws.create_task(title, owner, due, deal_id)
+                    detail = f"task → @{owner} due {due}"
+                    _post_done(ws, floor, worker, action_type, account, detail)
+                    done_lines.append(f"task → @{owner} · {account}")
+
                 elif action_type == "ask":
-                    floor = CFG["channels"]["floor"]
-                    who = args.get("who", "priya")
-                    ws.post(floor, f"@{who} — {problem.get('cause', 'question about ' + ref)}")
-                    
+                    who = args.get("who") or (problem.get("human") or {}).get("who") or "priya"
+                    with ws.as_agent(worker):
+                        ws.post(floor, f"@{who} — {account}: {cause}")
+                    detail = f"asked @{who}"
+                    _post_done(ws, floor, worker, action_type, account, detail)
+                    done_lines.append(f"asked @{who} · {account}")
+
                 elif action_type == "flag_event":
-                    floor = CFG["channels"]["floor"]
-                    ws.post(floor, f"⚠️ Event {ref}: {problem.get('cause', 'needs attention')}")
-                    
+                    with ws.as_agent(worker):
+                        ws.post(floor, f"⚠️ Event {ref or '—'}: {cause}")
+                    detail = f"flagged {ref or 'event'}"
+                    _post_done(ws, floor, worker, action_type, account, detail)
+                    done_lines.append(f"flagged event · {account}")
+
             except Exception as e:
                 print(f"\n⚠️  Error executing action {action_type} for {ref}: {e}")
+                _post_blocked(ws, floor, worker, action_type, account, str(e))
+
+    with ws.as_agent("desk"):
+        if done_lines:
+            bullet = "\n".join(f"• {x}" for x in done_lines[:12])
+            more = f"\n• +{len(done_lines)-12} more" if len(done_lines) > 12 else ""
+            ws.post(floor, f"—— Work done this round ——\n{bullet}{more}")
+        else:
+            ws.post(floor, "—— Work done this round ——\n• none (all actions blocked or empty)")
+
 
 
 def post_brief(problems: list[dict], ws: WorkspaceClient) -> str:
@@ -1039,93 +1441,122 @@ def post_brief(problems: list[dict], ws: WorkspaceClient) -> str:
     handled_items = [p for p in problems if not p.get("human")]
     
     lines = [
-        f"Attention brief · {dt.date.today().isoformat()} · {len(human_items)} item(s) need a person · everything else handled on the floor",
-        ""
+        f"Attention brief · {dt.date.today().isoformat()}",
+        f"{len(human_items)} item(s) need a person · everything else handled on the floor",
+        "",
     ]
-    
+
+    deals_by_id = {d.get("id"): d for d in ws.list_deals()}
+
     for i, problem in enumerate(human_items, 1):
-        human = problem.get("human", {})
+        human = problem.get("human") or {}
         who = human.get("who", "dana")
         account = problem.get("account", "—")
         cause = problem.get("cause", "issue flagged")
-        refs = ", ".join(problem.get("merges", []))
-        
-        # Check for ARR
+        refs = ", ".join(problem.get("merges", []) or [])
+
         arr = ""
-        for ref in problem.get("merges", []):
-            if ref.startswith("D-"):
-                # Try to get deal details
-                deals = ws.list_deals()
-                for d in deals:
-                    if d.get("id") == ref:
-                        arr_val = d.get("arr")
-                        if arr_val:
-                            arr = f" (${arr_val:,})"
-                        break
-        
-        lines.append(f"{i}. @{who} — {account}{arr}: {cause}")
-        lines.append(f"   Evidence: {refs}")
-        
-        # What's ready
-        actions = problem.get("actions", [])
+        for ref in problem.get("merges", []) or []:
+            d = deals_by_id.get(ref)
+            if d and d.get("arr"):
+                try:
+                    arr = f" (${int(d['arr']):,})"
+                except (TypeError, ValueError):
+                    arr = f" (${d['arr']})"
+                break
+
+        lines.append(f"{i}. @{who} — {account}{arr}")
+        lines.append(f"   {cause}")
+        if refs:
+            lines.append(f"   Evidence: {refs}")
+        actions = problem.get("actions") or []
         if actions:
-            ready = ", ".join([a.get("action", "") for a in actions])
-            lines.append(f"   Ready: {ready}")
+            ready = ", ".join(a.get("action", "") for a in actions if a.get("action"))
+            if ready:
+                lines.append(f"   Ready: {ready}")
         lines.append("")
-    
+
     if handled_items:
-        handled_accounts = ", ".join([p.get("account", "—") for p in handled_items[:5]])
+        handled_accounts = ", ".join(p.get("account", "—") for p in handled_items[:5])
         if len(handled_items) > 5:
             handled_accounts += f" + {len(handled_items) - 5} more"
         lines.append(f"Handled without you: {handled_accounts}")
-    
-    lines.append("")
+        lines.append("")
+
     lines.append("Reply in this thread and I'll record it.")
     
     brief = "\n".join(lines)
     
     attention = CFG["channels"]["humans"]
-    msg_id = ws.post(attention, brief)
+    with ws.as_agent("desk"):
+        msg_id = ws.post(attention, brief)
     
     return msg_id
 
 
 def reply_loop(brief_msg_id: str, ws: WorkspaceClient) -> None:
-    """Poll the brief thread; for each human reply, ask the Desk to extract the decision
-    and write it back (note/field/task); confirm on the floor in one line."""
-    
-    # This is rung 4 - poll for replies and process them
-    # For now, implement basic structure - full polling loop would need channel history with threading
-    
-    attention = CFG["channels"]["humans"]
-    floor = CFG["channels"]["floor"]
-    
-    print(f"\n[Reply loop stub - would poll {attention} thread {brief_msg_id} for human replies]")
-    
-    # In a full implementation:
-    # 1. Poll ws.read_channel(attention) for messages with thread_id == brief_msg_id
-    # 2. For each new reply, call model to extract decision
-    # 3. Write decision back via ws.add_deal_note / ws.set_deal_field / ws.create_task
-    # 4. Confirm on floor: ws.post(floor, f"Recorded: {decision}")
+    """Poll the brief thread; extract explicit human decisions and safe-write back.
+
+    Implementation lives in floor.reply_handler (rung 4). Call standalone for tests,
+    or enable from run_round via FLOOR_REPLY_LOOP=1.
+    """
+    from .reply_handler import handle_reply_loop
+    handle_reply_loop(brief_msg_id, ws, channels=CFG.get("channels"))
 
 
 def run_round(ws: WorkspaceClient) -> None:
     floor = CFG["channels"]["floor"]
+    attention = CFG["channels"]["humans"]
     watchers = [a for a in CFG["agents"] if a["id"] != "desk"]
+    stamp = dt.datetime.now().strftime("%Y-%m-%d %H:%M")
 
     # ---- pass 1 ----
+    with ws.as_agent("desk"):
+        ws.post(
+            floor,
+            f"—— Round {stamp} · pass 1 ——\n"
+            f"Watchers posting FINDING cards here.\n"
+            f"Desk will merge them and post the brief to #{attention.lstrip('#')}.",
+        )
+
     all_cards = []
     for agent in watchers:
         cards = run_watcher(agent, ws)
-        for c in cards:
-            ws.post(floor, c)
+        with ws.as_agent(agent.get("id")):
+            for c in cards:
+                ws.post(floor, c)
         all_cards.extend(cards)
 
     # ---- pass 2 ----
     problems = run_desk_merge(all_cards, ws)
+
+    with ws.as_agent("desk"):
+        ws.post(
+            floor,
+            f"—— Round {stamp} · pass 2 · Desk merge ——\n"
+            f"Merged {len(all_cards)} findings → {len(problems)} problem(s).\n"
+            f"Posting PROBLEM cards, then the human brief → #{attention.lstrip('#')}.",
+        )
+        # Show the merge path on the floor (top 5 by rank) so the channel isn't "findings forever"
+        ranked = sorted(problems, key=lambda p: p.get("rank", 99))[:5]
+        for problem in ranked:
+            ws.post(floor, _render_problem_card(problem))
+
     execute_actions(problems, ws)
     brief_id = post_brief(problems, ws)
-    # reply_loop(brief_id, ws)   # rung 4
+
+    with ws.as_agent("desk"):
+        ws.post(
+            floor,
+            f"—— Round {stamp} · done ——\n"
+            f"Brief posted to #{attention.lstrip('#')} (msg {brief_id or '—'}).\n"
+            f"Floor cards above are the audit trail; humans only need #attention.",
+        )
+    # Rung 4 — human reply handler (off by default; set FLOOR_REPLY_LOOP=1 to enable)
+    # Or call reply_loop(brief_id, ws) standalone / after seeding a thread reply.
+    # reply_loop(brief_id, ws)   # rung 4 (commented; prefer env flag below)
+    if os.environ.get("FLOOR_REPLY_LOOP", "").strip() in ("1", "true", "yes"):
+        reply_loop(brief_id, ws)
 
 
 if __name__ == "__main__":

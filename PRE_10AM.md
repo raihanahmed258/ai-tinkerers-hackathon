@@ -1,5 +1,7 @@
 # Pre-10:00 checklist — The Floor (2026-09-12)
 
+> **Historical.** This was the pre-event checklist. The build has since happened, so where this file and the README disagree, the README is current.
+
 America/Toronto. Event build starts 11:15. Do not fill `floor/round.py` TODOs before then.
 
 ## Done
@@ -57,7 +59,13 @@ At 11:15: run Inbox against the mock, or teach it to read `#ops-team` SEED MAIL 
 
 ## Model key reminder
 
-`agents.yaml` › `defaults.model` is still `gpt-5.1`. Confirm the starter-kit model name and put it there before the first live watcher call. You will also need the model API key in the environment (`OPENAI_API_KEY` or whatever the kit issues). Without it, mock still works; live watchers will not.
+**Resolved during the build, kept here so the record is straight.** This paragraph used to say the model was `gpt-5.1` and to set `OPENAI_API_KEY`. The build runs on Claude. `agents.yaml` › `defaults.model` is `claude-sonnet-4-5` and the key is `ANTHROPIC_API_KEY`, read from `.env` at the repo root.
+
+Without that key the mock still runs, but it silently falls back to heuristic rules and the brief comes out wrong: the top item disappears and one item degrades to a bare task id. Treat a missing key as a hard failure rather than a degraded mode. Confirm it loaded before recording:
+
+```bash
+.venv/bin/python -c "import os,dotenv; dotenv.load_dotenv('.env'); print('key loaded:', bool(os.environ.get('ANTHROPIC_API_KEY')))"
+```
 
 ## Do not
 

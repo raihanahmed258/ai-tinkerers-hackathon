@@ -1,7 +1,9 @@
 # Ambiguous MCP ↔ WorkspaceClient map
 
 Connected as Cursor MCP server `user-ambiguous` (`https://app.ambiguous.ai/mcp`).
-API key: `grokbot` with scopes `chat.*,crm.*,mail.*,tasks.*,calendar.*`.
+API key scopes: `chat.*,crm.*,mail.*,tasks.*,calendar.*`.
+
+The key is still named `grokbot` in the Ambiguous console, which is a leftover from an earlier working name and not what this project is called. Rename it there before anyone browses the workspace. The project is The Floor.
 
 | WorkspaceClient method | Ambiguous tool | Notes |
 |---|---|---|

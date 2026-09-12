@@ -48,7 +48,10 @@ Two different strengths of guarantee here, and they are worth keeping apart. Som
 
 **Enforced by prompt and honoured in practice, but the capability is there.**
 
-- **Stage and close-date changes.** The Tier 1 Verifier refuses moves to either field before a worker can act. Each round visibly tests that boundary with a fake `move stage` request; no real stage or close-date change is made.
+- **Stage and close-date changes.** The Tier 1 Verifier refuses moves to either
+  field before a worker can act. Recording mode (`--safety-demo`) visibly tests
+  that boundary with a fake `move stage` request; normal rounds omit the
+  synthetic test. No real stage or close-date change is made.
 - **Facts and dates, never opinions about people.** The "never" list in `agents.yaml`, reinforced in every playbook, plus a filter in code that drops findings containing feeling-words about customers or judgements about colleagues.
 
 **Read-heavy, write-light either way.** Tier 1 keeps the visible worker surface to bounded internal work and floor messages; it never sends customer mail or moves stages or close dates. The Verifier refuses and logs work outside that boundary.
@@ -190,6 +193,9 @@ Judges are owed the line between the two, so here it is. Prepared before the eve
 - **Read-heavy, write-light.** Notes, drafts and tasks, with a closed allowlist behind them.
 - **Facts and dates, never opinions about people.**
 
-## If the live workspace fights you
+## Live evidence
 
-Run the whole thing on `MockClient` with the terminal as the floor. It still shows the multiplayer merge and the brief, it is fully honest, and the workspace adapter is an hour of work you can name out loud. Working beats wired.
+The final Sonnet 5 round completed against the Ambiguous workspace. Use
+[`LIVE_ROUND_REPORT.md`](LIVE_ROUND_REPORT.md) for exact receipts and
+[`DEMO_NOW.md`](DEMO_NOW.md) for the recording path. `MockClient` remains the
+free offline development and evaluation path; it is not the live-demo fallback.

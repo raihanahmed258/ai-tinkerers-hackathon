@@ -16,7 +16,7 @@ Use the completed Sonnet 5 Ambiguous round from **15:22–15:27 Ottawa time**
    Ember Grill, Pine & Salt, and Copper Kettle Group, with no `Ready:` or reply
    promise.
 5. Record from [`demo/script.md`](demo/script.md). It is a 2:00 shot list with
-   239 spoken words and 24.4 seconds of scrolling slack.
+   240 spoken words and 24 seconds of scrolling slack.
 
 ## The story
 

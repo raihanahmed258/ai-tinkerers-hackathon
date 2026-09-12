@@ -66,26 +66,26 @@ Speaking rate is 2.5 words per second. Each Say cell fits its slot. Word counts 
 
 | Time | Channel | On screen | Say |
 |---|---|---|---|
-| 0:00–0:17 | `#agents-floor` | The `—— Round 2026-09-12 15:22 · pass 1 ——` header, then move through one `FINDING · Ops` and one `FINDING · Follow-up` card. Rest on a `ref:` line. | "This is Brightline Payroll. One stuck customer can leave signals in different tools. Three lanes inspect separate slices: Ops reads CRM, Inbox reads mail, and Follow-up reads tasks, calendar, and selected chat. This live round found evidence across two lanes." |
-| 0:17–0:33 | `#agents-floor` | The `—— Round … · pass 2 · Desk merge ——` header and the first two `PROBLEM · … · rank` cards. Rest the cursor on a `merges:` line. | "Pass two. The Desk reads the whole floor and merges same-account cards into one ranked problem. Each problem card carries its evidence ids, so you can trace the merge back to the cards above it." |
-| 0:33–0:52 | `#agents-floor` | The `—— Refusal theater ——` header. Land on `ASSIGN · Inbox → send email to customer`, then `VERIFIER · refused`, then `BLOCKED · Inbox`. Then `ASSIGN · Ops → set_field`, `VERIFIER · refused`, `BLOCKED · Ops`. | "In this safety demo, the Desk posts two deliberately unsafe asks. Send an email to a customer. Move a deal's stage. The verifier gate refuses both, and both end BLOCKED. These are synthetic tests, not customer work." |
-| 0:52–1:10 | `#agents-floor` | Scroll through one complete approved task chain in order: `ASSIGN · Follow-up → assign task`, `VERIFIER · approved`, `DONE · Follow-up · assign_task`. Pause briefly on each label; they need not fit together. | "Now the real work. Every assignment is one bounded step. The Desk posts ASSIGN. The gate posts its verdict: approved or refused. The worker posts DONE or BLOCKED. Nothing writes until the floor shows approved." |
-| 1:10–1:27 | `#agents-floor` | Slow scroll through the remaining chains toward `—— Work done this round ——`. If a `BLOCKED · Inbox · draft` post is there, let it pass through frame without stopping. | "Every step is on the floor as a post: the ask, the verdict, the receipt. Anyone can read the audit trail without a terminal. A BLOCKED receipt is not hidden. It means the worker stopped instead of guessing." |
-| 1:27–1:50 | `#attention` | Show the newest clean brief. Move through the three owner lines and their evidence, then stop on `Handled without you`. | "Humans get one brief in attention, capped at three items in code. This round routes Ember Grill to Theo, Pine and Salt to Dana, and Copper Kettle to Priya, each with evidence attached. Nothing was sent. No stage changed." |
-| 1:50–2:00 | `#agents-floor` | Switch back to the saved floor position showing a `VERIFIER · approved` immediately followed by `DONE`. Stop scrolling before you speak. Let the recording run out after the line. | "Attention is a team sport. Most of the team does not have to be human." |
+| 0:00–0:17 | `#agents-floor` | The `—— Round 2026-09-12 15:22 · pass 1 ——` header, then move through one `FINDING · Ops` and one `FINDING · Follow-up` card. Rest on a `ref:` line. | "A customer problem rarely lives in one place. The email is in one app, the overdue task in another, and the promise is buried in chat. The Floor gives each source a watcher and brings the evidence together here in Ambiguous." |
+| 0:17–0:33 | `#agents-floor` | The `—— Round … · pass 2 · Desk merge ——` header and the first two `PROBLEM · … · rank` cards. Rest the cursor on a `merges:` line. | "Then the Desk connects the dots. Instead of giving the team five separate alerts, it merges evidence about the same customer into one ranked problem. The original IDs stay attached, so anyone can check the reasoning." |
+| 0:33–0:52 | `#agents-floor` | The `—— Refusal theater ——` header. Land on `ASSIGN · Inbox → send email to customer`, then `VERIFIER · refused`, then `BLOCKED · Inbox`. Then `ASSIGN · Ops → set_field`, `VERIFIER · refused`, `BLOCKED · Ops`. | "Before anything happens, every action crosses a hard safety gate. Here I deliberately ask it to email a customer and change a deal stage. Both requests are refused and logged as blocked. The model cannot talk its way around the rule." |
+| 0:52–1:10 | `#agents-floor` | Scroll through one complete approved task chain in order: `ASSIGN · Follow-up → assign task`, `VERIFIER · approved`, `DONE · Follow-up · assign_task`. Pause briefly on each label; they need not fit together. | "Safe work follows the same path. The Desk assigns one small action, the gate approves it, and the worker reports what happened. If execution fails, it says blocked instead of pretending the job is done." |
+| 1:10–1:27 | `#agents-floor` | Slow scroll through the remaining chains toward `—— Work done this round ——`. If a `BLOCKED · Inbox · draft` post is there, let it pass through frame without stopping. | "This channel is the audit trail. You can see the request, the decision, and the receipt in order. The agents handle routine follow-up here, while only decisions that genuinely need a person move to attention." |
+| 1:27–1:50 | `#attention` | Show the newest clean brief. Move through the three owner lines and their evidence, then stop on `Handled without you`. | "And this is what the human sees: not another dashboard, just today's three decisions. Theo handles Ember Grill's filing risk, Dana finds Pine and Salt's new contact, and Priya closes the loop on Copper Kettle's quote. Every item carries its evidence." |
+| 1:50–2:00 | `#agents-floor` | Switch back to the saved floor position showing a `VERIFIER · approved` immediately followed by `DONE`. Stop scrolling before you speak. Let the recording run out after the line. | "The goal isn't more notifications. It's giving people back their attention." |
 
 ## Word counts
 
 | Time | Length | Words | Spoken at 2.5 w/s | Slack |
 |---|---|---|---|---|
-| 0:00–0:17 | 17s | 40 | 16.0s | 1.0s |
-| 0:17–0:33 | 16s | 35 | 14.0s | 2.0s |
-| 0:33–0:52 | 19s | 37 | 14.8s | 4.2s |
+| 0:00–0:17 | 17s | 41 | 16.4s | 0.6s |
+| 0:17–0:33 | 16s | 36 | 14.4s | 1.6s |
+| 0:33–0:52 | 19s | 41 | 16.4s | 2.6s |
 | 0:52–1:10 | 18s | 35 | 14.0s | 4.0s |
-| 1:10–1:27 | 17s | 38 | 15.2s | 1.8s |
-| 1:27–1:50 | 23s | 39 | 15.6s | 7.4s |
-| 1:50–2:00 | 10s | 15 | 6.0s | 4.0s |
-| **Total** | **120s** | **239** | **95.6s** | **24.4s** |
+| 1:10–1:27 | 17s | 35 | 14.0s | 3.0s |
+| 1:27–1:50 | 23s | 41 | 16.4s | 6.6s |
+| 1:50–2:00 | 10s | 11 | 4.4s | 5.6s |
+| **Total** | **120s** | **240** | **96.0s** | **24.0s** |
 
 Timecodes are contiguous and end at 2:00. The closing line has a 10 second slot; say it, stop, and let the recording run out.
 

@@ -21,7 +21,13 @@ Underneath all four, `WorkspaceClient` exposes `create_draft` and `list_events` 
 
 ## 3. Auditability: the floor is a readable protocol
 
-Every round writes the same ordered label chain to `#agents-floor`. Pass 1 posts FINDING cards, 8 Ops, 6 Inbox, 6 Follow-up on the mock. Pass 2 posts five PROBLEM cards ranked 1 to 5. Then the refusal block. Then for every action: `ASSIGN · <worker> → <action>`, `VERIFIER · approved | refused | needs_rewrite`, and `DONE` or `BLOCKED`. On the mock that is 7 Ops notes, 5 Inbox drafts, 6 Follow-up tasks, and 1 Desk ask, each as a three-post chain. A worker never executes a refused assignment, because the verdict is posted before the worker acts. A judge can read the channel top to bottom and reconstruct who decided what, in what order, with no log file. That is the audit boundary a swarm cannot give you, because in a swarm the ordering is emergent.
+Every round uses the same ordered protocol in `#agents-floor`. Pass 1 posts
+FINDING cards and pass 2 posts up to five ranked PROBLEM cards. Recording mode
+then adds the synthetic refusal block. For every productive action the floor
+shows `ASSIGN · <worker> → <action>`, `VERIFIER · approved | refused |
+needs_rewrite`, and `DONE` or `BLOCKED`. A worker never executes a refused
+assignment because the verdict is posted before the worker acts. A judge can
+read the channel top to bottom and reconstruct the order without a log file.
 
 ## 4. Refusal theater versus real refusal
 
@@ -33,13 +39,21 @@ With `--safety-demo`, `_refusal_theater` runs before productive work. It builds 
 
 The findings and the merge are derived. The priority order is a hand-written playbook prior. `floor/eval_unpinned.py --trace` measures it. On the heuristic path, with the stabilisers off the brief is Marigold, Sunset Taco, Harbor Fish. With them on it is Pine & Salt, Copper Kettle, T-1. Nothing was invented and backfill did not fire. Only the order changed. I defend the prior as what an ops lead would write down on day one: penalties and lost champions beat quiet deals. I do not defend it as learned behaviour.
 
-One more thing about the brief. Without `ANTHROPIC_API_KEY` the round uses heuristic rules and the brief is wrong: Ember Grill vanishes and item 3 is the bare task id T-1. `eval_expected` scores that AMBER. Loading the key is pre-roll blocker one. The old misleading `Ready:` line has been removed; execution truth stays in `DONE` and `BLOCKED` floor receipts.
+One more thing about the brief. Without `ANTHROPIC_API_KEY` the round uses
+heuristic rules and the brief is wrong: Ember Grill vanishes and item 3 is the
+bare task id T-1. `eval_expected` scores that AMBER. That matters for a future
+model-backed validation, but not for recording the existing live round. The old
+misleading `Ready:` line has been removed; execution truth stays in `DONE` and
+`BLOCKED` floor receipts.
 
 ## 6. Verifier-as-Desk is a seat constraint, not a cheat
 
 There is no Verifier seat and no Closer seat in the workspace. The VERIFIER verdict posts as Desk. The identity that carries the verdict is `as_agent("verifier")` (`floor/client.py` line 321). It tries `AMBIGUOUS_TOKEN_VERIFIER`, then `AMBIGUOUS_TOKEN_DESK`, and if neither is set it raises `PermissionError`. It never falls back to the default human token. `MCP_MAPPING.md` line 40 claims a fallback the code refuses; that line is wrong and PR #6 is in flight to fix the authorship docs.
 
-`python -m floor.round --live` now preflights the default workspace token, Desk-or-Verifier token, and optional MCP dependency before posting anything. Exporting `AMBIGUOUS_TOKEN_DESK` remains a pre-roll blocker. A dedicated Verifier seat can instead use `AMBIGUOUS_TOKEN_VERIFIER`; fail-closed means the code will not pretend a human/default identity is that role.
+`python -m floor.round --live` now preflights the default workspace token,
+Desk-or-Verifier token, and optional MCP dependency before posting anything. A
+future live run needs `AMBIGUOUS_TOKEN_DESK` or `AMBIGUOUS_TOKEN_VERIFIER`.
+Neither is needed to record the existing completed round.
 
 ## 7. Tier 2 timeline: opt-in, not in the recording
 

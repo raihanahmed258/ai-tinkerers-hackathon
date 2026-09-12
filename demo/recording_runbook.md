@@ -123,7 +123,9 @@ and tab switches.
 | 7 · Tagline | 1:50–2:00 | 10 s | 15 | 6.0 s | 4.0 s |
 | **Total** | **0:00–2:00** | **120 s** | **240** | **96.0 s** | **24.0 s** |
 
-Beat 6 is the one to rehearse twice. It is the longest cell, the cursor has to land on three item lines, and the last four sentences are the ones a judge will test.
+Beat 6 is the one to rehearse twice. It is the brief reveal: land on the single
+Ember Grill owner line, then its evidence, without implying that the cap
+requires three items.
 
 ### Beat 1 · 0:00–0:17 · 38 words
 
@@ -287,7 +289,7 @@ Fill the timestamp column from the finished recording. Every spoken claim needs 
 | 12 | Every assignment is one bounded step | `#agents-floor` | `ASSIGN · Follow-up → assign task` carries one action and one ref | __:__ |
 | 13 | The Desk posts ASSIGN | `#agents-floor` | `ASSIGN · Follow-up → assign task`, line `rule: wait for VERIFIER · approved before write` | __:__ |
 | 14 | The gate posts approved or refused | `#agents-floor` | `VERIFIER · approved`; refused receipts are row 10 | __:__ |
-| 15 | The worker posts DONE or BLOCKED | `#agents-floor` | `DONE · Ops · add_note`, line `result: note on deal <ref>`; `BLOCKED` receipts are row 10 | __:__ |
+| 15 | The worker posts DONE or BLOCKED | `#agents-floor` | `DONE · Follow-up · assign_task`; `BLOCKED` receipts are row 10 | __:__ |
 | 16 | Nothing writes until the floor shows approved | `#agents-floor` | `VERIFIER · approved` sits above `DONE` in the same frame; the `rule:` line on `ASSIGN` | __:__ |
 | 17 | Every step is on the floor as a post: the ask, the verdict, the receipt | `#agents-floor` | the repeating `ASSIGN`, `VERIFIER`, `DONE` labels during the beat 5 scroll | __:__ |
 | 18 | Anyone can read the audit trail without a terminal | `#agents-floor` | the frame is an Ambiguous channel and nothing else is in the take (section 4) | __:__ |

@@ -14,7 +14,10 @@ provenance.
 - **Desk merge.** `#agents-floor`, label `PROBLEM · <account> · rank N`, with a `merges:` line of evidence ids. Up to five cards, sliced in code; five on the mock, three live-shaped. Point only at a card with an account name.
 - **Refusal theater, when the demo flag is enabled, before any worker acts.** Run with `--safety-demo`; `#agents-floor` then shows `ASSIGN · Inbox → send email to customer`, `VERIFIER · refused`, `BLOCKED`, followed by the equivalent refused `set_field` chain. Normal rounds omit this synthetic work.
 - **The Tier 1 handoff.** `#agents-floor`: at least one chain of `ASSIGN`, `VERIFIER · approved`, `DONE`. Live-shaped that chain is `ASSIGN · Follow-up → assign task`, `VERIFIER · approved`, `DONE · Follow-up · assign_task`; an `add_note` chain exists only if Ops posted a finding. The VERIFIER verdict posts as Desk, which requires `AMBIGUOUS_TOKEN_DESK` before the round; without it the floor freezes on the first refusal-theater `ASSIGN` and no brief is posted.
-- **Fail-closed receipts.** `#agents-floor`: the two refusal-theater `BLOCKED` receipts every round. A `BLOCKED · Inbox · draft` receipt appears only when a draft was planned and no live thread resolved; with an empty inbox no draft is planned at all, so do not promise that receipt.
+- **Fail-closed receipts.** `#agents-floor`: recording mode shows the two
+  refusal-theater `BLOCKED` receipts. A `BLOCKED · Inbox · draft` receipt appears
+  only when a draft was planned and no live thread resolved. The observed live
+  round has these blocked draft receipts; do not generalize that to every run.
 - **One human brief.** `#attention`, one post headed `Attention brief · <date>`, line `N item(s) need a person` with N at most 3, each item naming an owner and an `Evidence:` line of ids.
 - **No send, no stage, no calendar.** The client has no send method and no calendar write; `set_field` is never approved for any field; a stage write raises `PermissionError` in `floor/client.py`.
 

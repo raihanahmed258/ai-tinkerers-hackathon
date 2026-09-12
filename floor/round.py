@@ -615,7 +615,11 @@ Please analyze this data according to your instructions and return a JSON object
             
             response = client.messages.create(
                 model=CFG["defaults"].get("model", "claude-sonnet-5"),
-                max_tokens=4096,
+                # Sonnet 5 enables adaptive thinking by default. This endpoint
+                # needs only machine-readable JSON; hidden thinking consumes
+                # the same output budget and can leave the JSON truncated.
+                thinking={"type": "disabled"},
+                max_tokens=8192,
                 system=system_prompt,
                 messages=[
                     {"role": "user", "content": user_msg}
@@ -691,7 +695,8 @@ Please analyze these findings and merge them into PROBLEM blocks. Return a JSON 
             
             response = client.messages.create(
                 model=CFG["defaults"].get("model", "claude-sonnet-5"),
-                max_tokens=4096,
+                thinking={"type": "disabled"},
+                max_tokens=8192,
                 system=desk_prompt,
                 messages=[
                     {"role": "user", "content": user_msg}

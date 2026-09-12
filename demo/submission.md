@@ -1,23 +1,71 @@
-# The Floor — portal submission
+# The Floor: portal submission (paste-ready)
 
-## Title
+Event: AI Tinkerers Ottawa, theme Agents Everywhere, Saturday 2026-09-12
+Repo: https://github.com/raihanahmed258/ai-tinkerers-hackathon
+Submit by 16:00. Every claim below agrees with [claim_sheet.md](claim_sheet.md).
 
-**The Floor: always-on teammates that protect human attention**
+---
 
-## Description
+## 1. Title (decided)
 
-The Floor is a multi-agent coordination layer for a company workspace. Three narrow watchers collect evidence from hard lanes: Ops sees CRM only, Inbox sees Mail only, and Follow-up sees Tasks, Calendar, and selected chat only. They post structured findings to an agent-only floor, where the Desk merges related signals into one customer-level problem.
+**The Floor: agent teammates that protect human attention**
 
-Tier 1 is a visible, bounded handoff: the Desk posts an `ASSIGN`, a Verifier gate returns `approved`, `refused`, or `needs_rewrite`, and the assigned worker reports `DONE` or `BLOCKED` on the floor. A Verifier does not need a dedicated workspace seat; when seats are limited, the code gate can post its verdict through the Desk or a human-controlled identity. What matters is the audit boundary: refused work never reaches a worker.
+---
 
-Every round also includes two labelled safety tests—`send customer email` and `move stage`. Both must be refused before any worker acts. The system does not send customer messages, move stages, or move close dates. Humans receive one `#attention` brief with at most three items, so agent activity becomes a short list of real decisions rather than more alerts.
+## 2. Description
 
-The live demo stays inside Ambiguous and shows the floor protocol, refusal tests, worker receipts, and the human brief. We do not use Mail drafts as proof because inbound mail and seeded drafts cannot reliably establish that a draft was created by the current run. A persistent account timeline and a human-reply handler are designed and coding in parallel; they are not claimed as working in the Tier 1 demo.
+The Floor is a small crew of agents that does the attention job for a company workspace. One stuck customer leaves evidence in four places: a quiet CRM deal, an unanswered mail thread, an overdue task, a meeting with no notes. No person owns reading all four every morning. The Floor does.
 
-## Stack
+Three watchers each read one hard lane. Ops reads CRM only. Inbox reads Mail only. Follow-up reads Tasks, Calendar and two chat channels only. The lanes are code, not a routing agent, and a lane that leaks a key raises an error. Each watcher posts short finding cards to an agent-only channel, `#agents-floor`. A card is a fact, a date and an id.
 
-Ambiguous workspace channels and the project’s orchestration code. The protocol is designed to work with dedicated agent seats when available, while keeping the Verifier boundary in code when they are not.
+A fourth agent, the Desk, reads the whole floor and merges same-account cards into ranked problem cards. Then the Tier 1 protocol runs in the open. The Desk posts `ASSIGN`. A code gate posts `VERIFIER · approved`, `refused` or `needs_rewrite`. The worker posts `DONE` or `BLOCKED`. Nothing writes until the floor shows approved. Before any worker acts, every round runs two deliberately unsafe asks, send an email to a customer and move a deal's stage, and both are refused in public.
 
-## One-line version
+The client has no send method and no calendar write. Stage and close-date changes are refused at every layer. Humans get one brief in `#attention` with at most three items, each naming an owner and its evidence ids.
 
-The Floor turns scattered workspace signals into a visible safety-gated protocol: `ASSIGN → VERIFIER → DONE/BLOCKED`, then a three-item brief for humans.
+On the offline mock, one round posts 20 findings, 5 problem cards and 2 refusals, writes 7 CRM notes, 5 drafts and 6 tasks, and asks one question, in 94 floor posts plus one brief. No healthy control account is flagged.
+
+Two limits, stated plainly. The live inbox is empty, so the Inbox lane has nothing to read live and its drafts end `BLOCKED`. The top three brief slots and their owners are a hand-written playbook prior, not model ranking.
+
+Next: the human reply handler, implemented behind a flag and not yet demonstrated, and a per-account timeline that stops re-escalating an account a human already owns.
+
+---
+
+## 3. Short description
+
+The Floor is four narrow agents doing the attention job for a company workspace. Ops reads CRM only, Inbox reads Mail only, Follow-up reads Tasks, Calendar and two chat channels only. The lanes are code. Each watcher posts fact-and-id finding cards to an agent-only channel. The Desk merges same-account cards into ranked problems, then runs a visible protocol: `ASSIGN`, a code-gate `VERIFIER` verdict, and a worker `DONE` or `BLOCKED`. Before any worker acts, every round runs two fake unsafe asks, send a customer email and move a stage, and refuses both.
+
+On the offline mock, one round posts 20 findings, 5 problem cards and 2 refusals, writes 7 notes, 5 drafts and 6 tasks, and gives humans one brief with at most 3 items. Zero healthy controls flagged. Nothing is sent to a customer, no stage moves, no calendar is touched; the client cannot do those things.
+
+Limits: the live inbox is empty, so Inbox drafts end `BLOCKED` live, and the brief order is a playbook prior. Next: the reply handler, built behind a flag, and a per-account timeline.
+
+---
+
+## 4. Stack
+
+Claude, model `claude-sonnet-4-5`, via the Anthropic API, for watcher and Desk extraction. Ambiguous AI workspace and its MCP server, Streamable HTTP, as the hands for Chat, CRM, Mail, Tasks and Calendar. Python round runner with `MockClient` offline and `McpClient` live. A morning schedule on Ambiguous Automations or Trigger.dev is designed, not running; today a round is started by hand.
+
+## 5. Demo world
+
+Brightline Payroll is invented, along with every person and customer in it. The seed is 20 deals, 12 mail threads, 9 tasks, 9 calendar events, 26 chat messages and 4 channels. The golden answer lives in `seed/expected_findings.md`, including the healthy control accounts that must never be flagged.
+
+---
+
+## 6. Social post
+
+Built The Floor at AI Tinkerers Ottawa today. Three narrow agents watch a company's CRM, inbox, tasks and calendar, a Desk merges what they find, and every action crosses a visible verifier gate on an agent-only channel before a human sees a three-item brief. Nothing is ever sent to a customer. Extraction runs on Claude. The hands are the Ambiguous MCP. Thanks @AnthropicAI @AmbiguousAI #AITinkerers #AgentsEverywhere
+
+**Builder, confirm before posting:** only Anthropic and Ambiguous are tagged, because Claude and the Ambiguous MCP are in the build. Check both handles against the event's own sponsor list before you post. Do not add any other sponsor handle unless you can see it on that list with your own eyes. Do not guess a handle.
+
+---
+
+## 7. Repo one-liner
+
+The Floor: agent teammates that protect human attention. Three narrow watchers, one Desk that merges and assigns, a verifier gate every action must cross, and a three-item brief for humans. Built at AI Tinkerers Ottawa, September 2026.
+
+---
+
+## 8. Next, not claimed
+
+- **Reply handler.** `floor/reply_handler.py` is real code with `SAFE_FIELDS` and `BLOCKED_FIELDS` allowlists, wired behind `FLOOR_REPLY_LOOP=1`, off by default, not demonstrated.
+- **Account timeline.** PR #4 adds `floor/timeline.py` and `should_escalate`, so an account escalated in the past 3 days and waiting on a human is downgraded to floor-only. It merged to GitHub `main` after the recording checkout and is not in the demoed code; its seeded store suppresses every human item until reset, so it is not shown.
+- **`rank=None` fix.** The `_rank_sort_key` helper landed in the same PR #4, after the recording checkout. Not in the demoed code.

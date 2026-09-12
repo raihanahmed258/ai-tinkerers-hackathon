@@ -36,9 +36,9 @@ Simulated offline against a live-shaped client: without the token the last thing
 
 Authorship: with only the Desk token, every post on the floor, watcher cards included, is signed by the Desk seat. Cards appear under their own seats only if `AMBIGUOUS_TOKEN_OPS`, `AMBIGUOUS_TOKEN_INBOX` and `AMBIGUOUS_TOKEN_FOLLOWUP` are also set. Decide before the warm round which of the two you are showing, and do not say "each watcher posts its own card" unless the seat names are on screen.
 
-### 2b. Do not `git pull` before recording
+### 2b. Enable only the recording behavior
 
-PR #4 (the account timeline) merged to GitHub `main` after this checkout, at `76be8d5`, and its committed `seed/timeline.json` marks the golden accounts as already waiting on a human. On that code the brief reads `0 item(s) need a person` and every one of Ember Grill, Pine & Salt and Copper Kettle is downgraded to the floor. Verified on an isolated copy of the merged tip. The store also writes back to `seed/timeline.json` on every run, so it compounds. Record from this checkout, `54ef2e6`. If you must pull, that file is the owner's problem to neutralise first, not yours to edit on camera.
+Run the recording round with `--safety-demo` so the two synthetic refusal chains are visible. Leave `--timeline` and `FLOOR_REPLY_LOOP` off; neither optional behavior is part of this take. Use `--no-model` for rehearsals that must not spend Anthropic credits, but not when claiming a model-backed take.
 
 ### 3. Warm live round before the take, labels confirmed
 
@@ -74,14 +74,14 @@ macOS Do Not Disturb on. Quit Mail, Slack and Messages. Phone silent and face do
 ## Do not show
 
 - The `Ready:` line in the brief. It prints planned actions, not executed ones. A draft that BLOCKed still reads `Ready: draft reply`. Do not read it aloud and do not point at it (H4).
-- The brief's closing line `Reply in this thread and I'll record it.` as a working feature. It prints every round. The reply handler is implemented behind `FLOOR_REPLY_LOOP`, off by default, not demonstrated. Keep the cursor off it (H5).
+- The reply handler as a working feature. It is off by default and the brief does not print a reply promise while it is off.
 - Any seeded Mail draft as agent output (H3).
 - A terminal.
 - Source code.
 - A mock transcript.
 - The Router as an LLM. It is code in `floor/router.py`.
 - A dedicated Verifier or Closer identity. Neither exists in the workspace.
-- The account timeline. It merged to GitHub `main` in PR #4 after this checkout and is not in the code being recorded. Not run, not demoed (H11).
+- The account timeline. It is opt-in with `--timeline`; leave it off and do not demo it.
 - Any `PROBLEM` card or brief item whose account reads as a UUID. It is a real live id, not a name, and it reads as a bug on camera (H17).
 
 ## Timed shot list
@@ -119,6 +119,6 @@ The first Say line names three lanes because the lanes are code and always true.
 
 ## If a judge asks what is not shown
 
-"The live recording shows the Tier 1 handoff and its two refusal tests. The reply handler is implemented behind a flag and not demonstrated. The account timeline is in an open pull request, not on main. Neither is a claim in this recording."
+"The live recording shows the Tier 1 handoff and its two demo-only refusal tests. The reply handler and account timeline are implemented, opt-in, and not demonstrated."
 
 For the diagram, use [architecture.md](architecture.md). For the long-form answers, use [judge_qa.md](judge_qa.md). For what changed and why, use [honesty_changelog.md](honesty_changelog.md).

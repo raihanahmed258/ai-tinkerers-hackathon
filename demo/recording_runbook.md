@@ -2,13 +2,13 @@
 
 One take, one voice, exactly 2:00, entirely inside the Ambiguous workspace. Record at 15:15. Submit by 16:00.
 
-**Where this choreography comes from.** No live round of the current code has been recorded. The only model-backed validation artifact, `MOCK_ROUND_VALIDATE3.txt`, predates the `ASSIGN`, `VERIFIER`, `DONE`, `BLOCKED` protocol and contains none of those labels. Every label, order, and hold in section 1 is derived from a mock round run offline on current main (HEAD `54ef2e6`, heuristic path, `python -m floor.round`). The live floor should show the same headers and the same label order. It will not show the same card counts, and it may not show the Inbox block at all. Section 3 covers each way it can differ.
+**Where this choreography comes from.** No model-backed live run of the current protocol is committed. `MOCK_ROUND_VALIDATE3.txt` predates the `ASSIGN`, `VERIFIER`, `DONE`, `BLOCKED` labels. Rehearse for free with `python -m floor.round --no-model --safety-demo`; the live floor should show the same protocol headers, not necessarily the same cards or counts.
 
 **Three pre-roll blockers.** Clear all three before the warm round. Each one has a section 3 entry if it bites during the take.
 
 1. `ANTHROPIC_API_KEY` loaded. Without it the code silently falls back to heuristic rules and the brief is wrong: rank 1 is not Ember Grill and item 3 is a bare task id. Confirm with the boolean command in section 3, case D. The model when the key is present is `claude-sonnet-4-5`.
 2. `AMBIGUOUS_TOKEN_DESK` exported in the shell that runs the round. `McpClient.as_agent("verifier")` tries `AMBIGUOUS_TOKEN_VERIFIER`, then `AMBIGUOUS_TOKEN_DESK`, and raises `PermissionError` if neither is set. The `--live` entry point reads only `AMBIGUOUS_API_KEY` or `AMBIGUOUS_TOKEN`, so with the default token alone the round dies at the first `VERIFIER` post. Confirm with the boolean command in section 3, case C.
-3. One warm round finished on the live floor, ending with `—— Round … · done ——` in `#agents-floor` and a new brief in `#attention`. Budget note: a round writes about 113 workspace objects, so against a 1,000-action monthly tier you have roughly 9 rounds in total. The warm round plus at most two retries is the allowance for today.
+3. One warm round finished on the live floor, run with `--live --safety-demo` and with `--timeline` omitted. It ends with `—— Round … · done ——` in `#agents-floor` and a new brief in `#attention`. The historical demo produced roughly 100 writes, so avoid speculative live retries.
 
 Browser setup: one window, two tabs, `#agents-floor` first and `#attention` second. Nothing else open. Zoom the browser until one `FINDING` card fills roughly a third of the frame; that zoom is what lets the brief's last two lines fall below the fold in beat 6. Do Not Disturb on. Quit Mail, Slack, and Messages.
 
@@ -87,7 +87,7 @@ The chains are not meant to be read; the repeating labels are the point. Set the
 | 1:41–1:46 | `3. @priya — Copper Kettle Group ($84,000)` | 5 s | the item's first line |
 | 1:46–1:50 | no scroll | 4 s | item 3's `Evidence:` line, with `Handled without you: …` as the last visible line of the frame |
 
-Every item prints an owner-and-account line and a cause line, then `Evidence:` when the merge carries refs and `Ready:` when the problem carries actions. A problem backfilled by `_ensure_golden_problems` has no actions and no `Ready:` line. If item 3 has no `Evidence:` line, rest on its cause line for 1:46–1:50 instead. Never rest the cursor on a `Ready:` line. It prints the planned actions, not the executed ones, so live it can read `draft reply` for a draft that was BLOCKED. Two lines below `Handled without you:` the brief prints `Reply in this thread and I'll record it.` Keep that line below the bottom of the frame. If the zoom set in pre-roll cannot push it below the fold, keep the cursor at least one item above it and never read it. If a judge reads it off the recording, the reply handler is designed and implemented behind a flag and not demonstrated; `FLOOR_REPLY_LOOP` is off by default.
+Every item prints an owner-and-account line and a cause line, then `Evidence:` when the merge carries refs and `Ready:` when the problem carries actions. A problem backfilled by `_ensure_golden_problems` has no actions and no `Ready:` line. If item 3 has no `Evidence:` line, rest on its cause line for 1:46–1:50 instead. Never rest the cursor on a `Ready:` line: it prints planned actions, not execution receipts. With `FLOOR_REPLY_LOOP` off, the brief does not print a reply-handling promise.
 
 The beat 6 Say cell names no account, no owner, and no dollar amount. Do not add them. The cursor on the owner lines is the receipt for "Each item names an owner".
 
@@ -248,8 +248,8 @@ None of these appears in the take, in a cutaway, or in a still. Each one either 
 | Mock transcript, including `MOCK_ROUND_VALIDATE3.txt` and any `run.txt` | No mock output is evidence of the live protocol, and the only committed validation predates the protocol entirely. |
 | Mail drafts, the Mail tab, any draft object | The three drafts in the live Mail were placed during seeding and are not agent output. Live agent drafts BLOCK on the empty inbox. |
 | The `Ready:` line under any brief item | It prints planned actions, not executed ones. Live it can read `draft reply` for a draft that never existed. |
-| The line `Reply in this thread and I'll record it.` | Appended unconditionally. The handler behind it is implemented behind `FLOOR_REPLY_LOOP=1` and is off. Not read aloud, not in frame, not pointed at. |
-| Timeline, `floor/timeline.py`, `seed/timeline.json`, any `[Timeline] Skipped re-escalation` line | Merged to GitHub main in PR #4 after the recording checkout; not in the code being recorded. On the merged code the seeded store zeroes the brief. Do not pull before the take. Not demoed. |
+| Reply handling | Implemented behind `FLOOR_REPLY_LOOP=1`, off for this recording. The brief makes no reply promise while off. |
+| Timeline or any `[Timeline] Skipped re-escalation` line | Optional behind `--timeline`, off for this recording. Runtime state is outside tracked seed data. |
 | Any file under `prompts/` | `prompts/desk.md` names the expected merges and the required brief order. On screen it turns the derived merge into a script. |
 | Any dashboard, board, or console outside the Ambiguous workspace | Only Ambiguous channels are the demo surface. |
 | The `human:` line on a `PROBLEM` card and any `• task → @dana` bullet | Task owner routing defaults every task to dana. True, on the floor, and not a strength. |
@@ -293,5 +293,5 @@ Fill the timestamp column from the finished recording. Every spoken claim needs 
 Three checks after the table is full.
 
 1. Rows 11, 14, and 26 each carry a spoken claim with no on-screen receipt. Before submitting, decide each one the same way: either the sentence stays and the Q&A answer named in the row is ready, or the sentence is cut from `demo/script.md` and re-recorded. Write the decision here: __ / __ / __
-2. Search the recording for the `Ready:` lines and for `Reply in this thread and I'll record it.` If either is legible in any frame, note the timestamp here and re-record beat 6 with more zoom: __:__
+2. Search the recording for `Ready:` lines. If one is legible, note the timestamp here and re-record beat 6 with more zoom: __:__
 3. Search the recording for the word "draft" in the audio; it should not be there. Then search the frames for `DONE · Inbox · draft` and for any `BLOCKED · Inbox · draft` that the cursor rested on. A `BLOCKED · Inbox · draft` that only passed through during the beat 5 scroll is expected and is a receipt for row 19. A `DONE · Inbox · draft` should not exist live, because the inbox is empty. If either flagged case is there, decide whether to cut the beat before submitting, because it will get the question in section 3, case A1.

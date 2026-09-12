@@ -12,6 +12,7 @@ API is mock-friendly and can run without Ambiguous live.
 from __future__ import annotations
 import datetime as dt
 import json
+import os
 from pathlib import Path
 from typing import Literal
 
@@ -82,8 +83,9 @@ class TimelineStore:
     
     def __init__(self, store_path: Path | None = None):
         if store_path is None:
-            # Default to seed/timeline.json
-            store_path = Path(__file__).resolve().parent.parent / "seed" / "timeline.json"
+            root = Path(__file__).resolve().parent.parent
+            configured = os.environ.get("FLOOR_TIMELINE_PATH")
+            store_path = Path(configured).expanduser() if configured else root / ".floor" / "timeline.json"
         self.store_path = store_path
         self._cache: dict[str, AccountTimeline] = {}
         self._load()
@@ -190,5 +192,5 @@ class TimelineStore:
 
 
 def get_default_store() -> TimelineStore:
-    """Get the default timeline store (seed/timeline.json)."""
+    """Get the runtime timeline store (untracked `.floor/` by default)."""
     return TimelineStore()

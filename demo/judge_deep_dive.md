@@ -49,7 +49,7 @@ I ran the merged tree on the mock from a scratch copy. The committed `seed/timel
 
 ## 8. Non-goals
 
-No sends. No stage moves. No close-date or calendar edits. No autonomous business decisions. No cross-round memory in the recording. No LLM router. The reply handler (`floor/reply_handler.py`, 633 lines, `SAFE_FIELDS` and `BLOCKED_FIELDS` allowlists) is implemented and only runs when `FLOOR_REPLY_LOOP=1`, so the brief's closing line "Reply in this thread and I'll record it" is a promise of designed behaviour, not demonstrated behaviour. Live, the inbox is empty, so expect no Inbox findings and every Inbox draft chain to end BLOCKED on "could not resolve mail id". The `[SEED MAIL]` summary in `#ops-team` and the three seeded drafts are not agent output. A round writes about 113 workspace objects, so a weekday schedule exhausts a 1,000-action tier in under two weeks; `AUTOMATIONS.md` still quotes 25 writes and is stale. All six tasks go to dana with due date today plus two.
+No sends. No stage moves. No close-date or calendar edits. No autonomous business decisions. No cross-round memory in the recording. No LLM router. The reply handler is implemented and only runs when `FLOOR_REPLY_LOOP=1`; while it is off, the brief makes no reply-handling promise. Live, the inbox is empty, so expect no Inbox findings and unresolved draft chains to end BLOCKED. The `[SEED MAIL]` summary and seeded drafts are not agent output. The historical safety-demo mock produced roughly 113 workspace writes; normal mode omits the seven synthetic refusal posts, and `AUTOMATIONS.md` now requires measuring the live configuration before scheduling. All six tasks in that historical run went to dana with due date today plus two.
 
 ## If we had 48 more hours
 

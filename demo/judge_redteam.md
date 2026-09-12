@@ -192,9 +192,9 @@ Evidence notation: "Ambiguous, #channel, label" means a post you can scroll to i
 
 ### 19. "Reply in this thread and I'll record it." Nothing is listening.
 
-(a) Steelman. "Every brief ends with that sentence unconditionally. The reply handler is behind FLOOR_REPLY_LOOP=1 and off by default. Dana replies and nothing happens. You are promising a loop you do not run."
+(a) Steelman. "The reply handler is behind FLOOR_REPLY_LOOP=1 and off by default. Does the brief still promise to record replies?"
 
-(b) Answer. Correct. The sentence is appended unconditionally and the handler is off unless the flag is set. The handler is real code, six hundred lines, with SAFE_FIELDS and BLOCKED_FIELDS allowlists and regex extraction of a contact, a date or a yes-no, so a reply cannot set stage or owner even when it runs. Status for you: designed and implemented behind a flag, not demonstrated. I did not turn it on for the recording because it has never run against the live thread.
+(b) Answer. No. The brief now prints that promise only when the handler flag is enabled. The handler is real code with SAFE_FIELDS and BLOCKED_FIELDS allowlists, but it remains off and undemonstrated in this recording.
 
 (c) Trap. Do not say "the Desk records your reply" in the present tense.
 
@@ -202,23 +202,23 @@ Evidence notation: "Ambiguous, #channel, label" means a post you can scroll to i
 
 ### 20. No memory between rounds. Tomorrow it re-alerts everything.
 
-(a) Steelman. "Every round starts blank. Pine & Salt goes to Dana today, tomorrow, and every day until someone edits the CRM. The Tier 2 timeline that fixes this merged after your demo checkout and has never been run by you."
+(a) Steelman. "With timeline disabled, Pine & Salt can return tomorrow. Is cross-round memory actually active?"
 
-(b) Answer. Correct for the demo checkout, 54ef2e6: no state between rounds, so the same escalation repeats. PR #4 merged to main on GitHub at 17:06 UTC with floor/timeline.py, a JSON-backed per-account store with last decision, drafts prepared, waiting on, escalated at, and a should_escalate that returns false when the account went to #attention within three days and is waiting on a human. I have not pulled it. On the mock its shipped seed downgrades all four human items to zero, so it is merged, unrun on my side, and not demoed. I will not show it.
+(b) Answer. Not in the recording. The timeline is implemented but opt-in with `--timeline`; it writes ignored runtime state under `.floor/` rather than mutating tracked seed data. We keep it off unless deliberately testing cross-round behavior.
 
 (c) Trap. Do not describe the timeline as running.
 
-(d) Evidence. deferred; on GitHub main after 76be8d5: floor/timeline.py, seed/timeline.json, TIER2_TIMELINE.md; not in the 54ef2e6 demo checkout and not run.
+(d) Evidence. source only: `floor/timeline.py`, `TIER2_TIMELINE.md`, and the `--timeline` CLI flag.
 
 ### 21. What does a round cost, and does it fit the tier?
 
-(a) Steelman. "AUTOMATIONS.md says 25 writes a round and 525 a month. Your own run writes about 113 workspace objects. Against a 1,000-action monthly tier that is nine rounds. A weekday schedule dies in under two weeks. The budget doc is fiction."
+(a) Steelman. "A historical run wrote about 113 workspace objects. How can you claim this fits a schedule?"
 
-(b) Answer. The doc is stale and your arithmetic is right. A round now writes roughly 113 objects: 95 posts, 7 notes, 5 drafts, 6 tasks, plus four model calls. Against a thousand-action tier that is about nine rounds, so a weekday schedule breaks the tier in under two weeks. The volume is the audit trail, and most of it is floor chatter that could collapse into threads. The schedule is designed, on Ambiguous Automations or Trigger.dev, and not running, so nothing is being spent today.
+(b) Answer. We do not claim that. The schedule is not running. The historical safety-demo mock was roughly 113 writes plus four model-call slots; normal mode now omits seven synthetic posts, but live usage still must be measured before scheduling.
 
 (c) Trap. Do not quote 25 writes or 525 a month.
 
-(d) Evidence. none live, source only, AUTOMATIONS.md:65 and :69 the stale numbers; the eval line "floor posts 94" plus the one #attention brief from today's mock.
+(d) Evidence. `AUTOMATIONS.md` and the historical eval line `floor posts 94` plus one brief.
 
 ### 22. What breaks at 2,000 deals?
 
@@ -242,9 +242,9 @@ Evidence notation: "Ambiguous, #channel, label" means a post you can scroll to i
 
 ### 24. The rank crash and the PRs your checkout does not have.
 
-(a) Steelman. "An LLM Desk can return rank null. With the stabilisers off, the PROBLEM-card sort raises TypeError and the round dies. The fix merged after your demo checkout. So the model path plus the honest ablation crashes on what you are running."
+(a) Steelman. "An LLM Desk can return rank null. Does the PROBLEM-card sort still crash?"
 
-(b) Answer. Reproduced at 54ef2e6. With stabilisers disabled and a problem whose rank is None, the sort in run_round raises TypeError; on that commit it is masked because _stabilize_brief re-numbers ranks first. The _rank_sort_key fix landed on GitHub main with PR #4 at 17:06 UTC; PR #8, which carried the same fix, is closed. My demo checkout predates the merge, so the fix is upstream and not in what I run. PR #6, authorship docs, is open; PR #7, safety allowlist fixes, was closed unmerged; PR #10, channel paging, merged at 17:20. None of them is in the recording.
+(b) Answer. No. Current main sorts through `_rank_sort_key`, which handles missing or null ranks. The old crash existed on the earlier recording checkout and is historical.
 
 (c) Trap. Do not say the crash is fixed without naming which checkout.
 
@@ -289,11 +289,10 @@ Each overclaim is paired with the sentence to say instead.
 - Never say "reply in the thread and it records it". Say: "the reply handler is implemented behind a flag and not demonstrated." (H5)
 - Never say "the model ranked the brief" or "the Desk chose Theo". Say: "findings and merge are derived; the priority order is a hand-written playbook prior applied in code, and eval_unpinned measures how much it carries." (H7)
 - Never read a brief aloud before confirming the key path. Say: "with no key the brief is wrong and the eval says AMBER; the key is pre-roll blocker number one." (H6)
-- Never say "25 writes a round" or "525 a month". Say: "about 113 objects a round, roughly nine rounds on a thousand-action tier; the automation doc is stale." (H8)
+- Never present the historical 113-write safety-demo count as a live billing guarantee. Say: "normal mode is lower, but we measure the actual live configuration before scheduling." (H8)
 - Never say "the schedule runs". Say: "the schedule is designed on Ambiguous Automations or Trigger.dev and is not running."
 - Never say "tasks are routed to the right owner". Say: "task owner defaults to dana; routing is a known weak spot." (H9)
-- Never say "the rank crash is fixed" without qualifying which checkout. Say: "reproduced with stabilisers off at 54ef2e6; the fix is on GitHub main via PR #4 and not in the demo checkout." (H10)
-- Never say "the timeline prevents re-escalation". Say: "the timeline merged to GitHub main in PR #4 after the demo checkout; it is not pulled, not run by me, and not demoed." (H11)
+- Never say the optional timeline was demonstrated. Say: "it is implemented, off by default, and writes ignored runtime state when enabled." (H11)
 - Never mention PR #6 or #7 as done. Say: "PR #6 is open; PR #7 was closed unmerged." (H12)
 - Never say "Follow-up should have flagged E-4". Say: "E-4 is a golden-answer contradiction; the lane forbids Follow-up from knowing Jordan left, and the finding belongs to the Desk merge." (H13)
 - Never say "the eval is independent". Say: "the watcher half tests discovery against controls that must stay quiet; the Desk half tests compliance with the playbook in desk.md."

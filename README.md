@@ -57,7 +57,7 @@ Two different strengths of guarantee here, and they are worth keeping apart. Som
 python3 -m venv .venv
 .venv/bin/pip install -r requirements.txt
 .venv/bin/python -m floor.seed     # 20 deals, 12 threads, 9 tasks, 9 events, 26 chat messages
-.venv/bin/python -m floor.round    # one full round against the in-memory mock
+.venv/bin/python -m floor.round --no-model  # free offline smoke test
 ```
 
 The mock path runs on **Python 3.9 or newer**, which is what macOS ships, so the offline round works on a stock Mac with nothing installed. The live path additionally needs **Python 3.10 or newer** and the `mcp` package, which is commented out of `requirements.txt` for exactly that reason:
@@ -70,8 +70,10 @@ The mock path runs on **Python 3.9 or newer**, which is what macOS ships, so the
 
 | Mode | Command | What it talks to |
 |---|---|---|
-| **Mock** (default) | `python -m floor.round` | `MockClient`, entirely offline and in memory. Every post, draft, note and task prints to the terminal. |
+| **Mock** (default) | `python -m floor.round --no-model` | `MockClient`, entirely offline and in memory. `--no-model` guarantees no Anthropic call even when `.env` contains a key. |
 | **Live** | `python -m floor.round --live` | `McpClient` against an Ambiguous workspace over MCP (Streamable HTTP). Needs `AMBIGUOUS_API_KEY` or `AMBIGUOUS_TOKEN`; URL defaults to `https://app.ambiguous.ai/mcp` and `AMBIGUOUS_MCP_URL` overrides it. |
+
+Copy `.env.example` to `.env` for the available token names and optional flags. A live round writes many workspace objects; do not use `--live` as a routine smoke test.
 
 Tool-by-tool mapping from this repo's `WorkspaceClient` interface to the real Ambiguous tool names is in [`MCP_MAPPING.md`](MCP_MAPPING.md). What got seeded into the live workspace, and with which ids, is in [`SEED_REPORT.md`](SEED_REPORT.md).
 
@@ -79,7 +81,7 @@ Tool-by-tool mapping from this repo's `WorkspaceClient` interface to the real Am
 
 Set `ANTHROPIC_API_KEY` (in `.env` or the environment) before you trust a run. The model is `claude-sonnet-4-5`, set in `agents.yaml › defaults.model`.
 
-There is a heuristic fallback that runs when the key is missing or a model call throws, so the round always produces output. **It is a smoke test, not the product.** Without the key the brief comes out materially wrong: the highest-priority item disappears and one item degenerates into a bare task id. If you are recording, demoing, or judging this, confirm the key is loaded first.
+There is a heuristic fallback that runs when the key is missing, a model call throws, or `--no-model` is set. **It is a smoke test, not a model-validated result.** Use `--no-model` for cleanup and local checks so an existing `.env` cannot spend credits accidentally. If you are recording a model-backed run, confirm the key is loaded first.
 
 ```bash
 .venv/bin/python -c "import os,dotenv; dotenv.load_dotenv('.env'); print('key loaded:', bool(os.environ.get('ANTHROPIC_API_KEY')))"
@@ -92,7 +94,7 @@ For the short evaluation flow and the meaning of `GREEN`, `AMBER`, and `RED`, se
 The seed was built so a good round is checkable rather than a matter of taste, and [`seed/expected_findings.md`](seed/expected_findings.md) is the golden answer. `floor/eval_expected.py` scores a captured round against it:
 
 ```bash
-.venv/bin/python -m floor.round | tee run.txt
+.venv/bin/python -m floor.round --no-model | tee run.txt
 .venv/bin/python -m floor.eval_expected run.txt
 ```
 
@@ -124,9 +126,10 @@ Being straight about the edges, because a demo that overclaims is worse than one
 
 - **The Desk's merge is visible in the brief, not on the floor.** Merged evidence shows up as the brief's `Evidence:` line joining a deal, a task and an event for one account. The Desk does not currently post a per-finding `PROBLEM` block in each card's thread.
 - **Notes and drafts are wired but did not fire in the validated run.** `add_deal_note` and `create_draft` are implemented and exercised by the heuristic path. In the validated model run the Desk chose tasks and questions instead, so that log contains no CRM note and no draft.
-- **The refusal is real code, not a visible demo moment.** Nothing in a normal round trips the allowlist, so you prove it by reading `execute_actions`, not by watching it happen.
-- **The allowlist is wider than the playbooks.** `set_field` is in it and the live client can write a stage or a close date, so the no-stage-change guarantee is a prompt, not a wall. Nothing exercised it in the validated run. Better to say that than to claim a wall that is not there.
-- **The human reply loop is designed and stubbed, not wired.** `reply_loop` exists with the intended shape and is commented out of `run_round`. A human answering in the brief thread and the Desk writing it back to the CRM is the next piece of work, not a thing to claim today.
+- **The visible refusal sequence is demo-only.** Pass `--safety-demo` to post the two synthetic unsafe requests and their refused/BLOCKED receipts. Normal rounds do not spend workspace writes on fake work.
+- **Stage and close-date writes are blocked in code.** The Verifier refuses `set_field`, and `McpClient.set_deal_field` independently raises for protected fields.
+- **The human reply handler exists but is off by default.** Set `FLOOR_REPLY_LOOP=1` only for a deliberately tested run. When it is off, the brief does not claim that replies will be recorded.
+- **Cross-round timeline state is opt-in.** Pass `--timeline` after choosing the state you want. Runtime state lives under ignored `.floor/` by default, never in the tracked seed; override it with `FLOOR_TIMELINE_PATH`.
 - **Live Mail has no inbound.** Ambiguous exposes `list_inbox`, `create_draft_email` and `send_email` but nothing to inject fictional inbound customer mail, so the Inbox watcher has nothing to read against the live workspace. Mitigated by a `[SEED MAIL]` summary in `#ops-team` covering `M-1`, `M-2`, `M-3`, the `M-4` bounce and `M-9`, plus three draft emails. `send_email` was never called. The honest path for Inbox is the mock, and saying so out loud costs nothing.
 
 ---

@@ -103,12 +103,12 @@ Speaking rate is 2.5 words per second. Each Say cell fits its slot. Word counts 
 |---|---|---|---|---|
 | 0:00–0:17 | 17s | 38 | 15.2s | 1.8s |
 | 0:17–0:33 | 16s | 35 | 14.0s | 2.0s |
-| 0:33–0:52 | 19s | 43 | 17.2s | 1.8s |
+| 0:33–0:52 | 19s | 37 | 14.8s | 4.2s |
 | 0:52–1:10 | 18s | 37 | 14.8s | 3.2s |
 | 1:10–1:27 | 17s | 38 | 15.2s | 1.8s |
 | 1:27–1:50 | 23s | 51 | 20.4s | 2.6s |
 | 1:50–2:00 | 10s | 15 | 6.0s | 4.0s |
-| **Total** | **120s** | **257** | **102.8s** | **17.2s** |
+| **Total** | **120s** | **251** | **100.4s** | **19.6s** |
 
 Timecodes are contiguous and end at 2:00. The closing line has a 10 second slot; say it, stop, and let the recording run out.
 

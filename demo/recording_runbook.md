@@ -104,7 +104,7 @@ The tab keeps the beat 5 scroll position, so this chain is one short upward scro
 
 ## 2. Voice-over script
 
-Rate: 2.5 words per second. Cap: 300 words. Comfortable: 240 to 270. This script is 257 words, 102.8 seconds spoken inside 120 seconds, with 17.2 seconds of slack for scrolling and tab switches.
+Rate: 2.5 words per second. Cap: 300 words. Comfortable: 240 to 270. This script is 251 words, 100.4 seconds spoken inside 120 seconds, with 19.6 seconds of slack for scrolling and tab switches.
 
 **Source of truth.** The Say cells below are copied word for word from the seven rows of `demo/script.md` in the working tree at reconciliation time. If Part A's review changes that file, change this section to match and re-run the counts. One label caution: `demo/script.md` writes the blocked draft post as `BLOCKED · Inbox · draft reply`; the code prints `BLOCKED · Inbox · draft`, because `execute_actions` passes the action type `draft` to `_post_blocked`. The `ASSIGN` label is `ASSIGN · Inbox → draft reply`. This runbook uses the labels the code prints.
 
@@ -112,12 +112,12 @@ Rate: 2.5 words per second. Cap: 300 words. Comfortable: 240 to 270. This script
 |---|---|---|---|---|---|
 | 1 · Pass one | 0:00–0:17 | 17 s | 38 | 15.2 s | 1.8 s |
 | 2 · Pass two | 0:17–0:33 | 16 s | 35 | 14.0 s | 2.0 s |
-| 3 · Refusal theater | 0:33–0:52 | 19 s | 43 | 17.2 s | 1.8 s |
+| 3 · Refusal theater | 0:33–0:52 | 19 s | 37 | 14.8 s | 4.2 s |
 | 4 · One approved chain | 0:52–1:10 | 18 s | 37 | 14.8 s | 3.2 s |
 | 5 · Remaining chains to work done | 1:10–1:27 | 17 s | 38 | 15.2 s | 1.8 s |
 | 6 · The brief | 1:27–1:50 | 23 s | 51 | 20.4 s | 2.6 s |
 | 7 · Tagline | 1:50–2:00 | 10 s | 15 | 6.0 s | 4.0 s |
-| **Total** | **0:00–2:00** | **120 s** | **257** | **102.8 s** | **17.2 s** |
+| **Total** | **0:00–2:00** | **120 s** | **251** | **100.4 s** | **19.6 s** |
 
 Beat 6 is the one to rehearse twice. It is the longest cell, the cursor has to land on three item lines, and the last four sentences are the ones a judge will test.
 
@@ -131,7 +131,7 @@ The three lanes are code in `floor/router.py` and are true whether or not Inbox 
 
 > Pass two. The Desk reads the whole floor and merges same-account cards into one ranked problem. Each problem card carries its evidence ids, so you can trace the merge back to the cards above it.
 
-### Beat 3 · 0:33–0:52 · 43 words
+### Beat 3 · 0:33–0:52 · 37 words
 
 > In this safety demo, the Desk posts two deliberately unsafe asks. Send an email to a customer. Move a deal's stage. The verifier gate refuses both, and both end BLOCKED. These are synthetic tests, not customer work.
 
